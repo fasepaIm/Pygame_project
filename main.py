@@ -2,6 +2,7 @@ import os
 import sys
 import pygame
 import pytmx
+from pygame import *
 
 
 
@@ -10,6 +11,19 @@ FPS = 15
 MAPS_DIR = "maps"
 TITLE_SIZE = 32
 ENEMY_EVENT_TYPE = 30
+NIGHT_COLOR = (20, 20, 20)
+LIGHT_RADIUS = (500, 500)
+LIGHT_MASK = "light_350_med.png"
+
+
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    # если файл не существует, то выходим
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
+    return image
 
 
 class Labyrinth:
@@ -56,21 +70,40 @@ class Labyrinth:
             x, y = prev[y][x]
         return x, y
 
+# класс героя (инициализация уже переделана под анимированный спрайт)
+class Hero(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, position, all_sprites):
+        super().__init__(all_sprites)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect.x, self.rect.y = position
 
-class Hero:
-    def __init__(self, pic, position):
-        self.x, self.y = position
-        self.image = pygame.image.load(f"images/{pic}")
+        
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, 
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
 
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+       
     def get_position(self):
-        return self.x, self.y
+        return self.rect.x, self.rect.y
 
     def set_position(self, position):
-        self.x, self.y = position
+        self.rect.x, self.rect.y = position
 
     def render(self, screen):
         delta = (self.image.get_width() - TITLE_SIZE) // 2
-        screen.blit(self.image, (self.x * TITLE_SIZE - delta, self.y * TITLE_SIZE - delta))
+        screen.blit(self.image, (self.rect.x * TITLE_SIZE - delta, self.rect.y * TITLE_SIZE - delta))
+
 
 class Enemy:
     def __init__(self, pic, position):
@@ -137,13 +170,36 @@ def show_message(screen, message):
                                               text_w + 20, text_h + 20))
     screen.blit(text, (text_x, text_y))
 
+# класс для создания тумана/ночного освещения
+class Fog:
+    def __init__(self, screen):
+        self.screen = screen
+        self.fog = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.fog.fill(NIGHT_COLOR)
+        self.light_mask = load_image(LIGHT_MASK).convert_alpha()
+        self.light_mask = pygame.transform.scale(self.light_mask, LIGHT_RADIUS)
+        self.light_rect = self.light_mask.get_rect()
+
+
+    def render_fog(self):
+        self.fog.fill(NIGHT_COLOR)
+        #self.light_rect.center = self.camera.apply(self.player).center
+        self.light_rect.center = (10 * TITLE_SIZE, 9 * TITLE_SIZE)
+        self.fog.blit(self.light_mask, self.light_rect)
+        self.screen.blit(self.fog, (0, 0), special_flags=pygame.BLEND_MULT)
+
+
 def main():
     pygame.init()
+    night = True # захочешь убрать ночной режим - выставь False
     screen = pygame.display.set_mode(WINDOW_SIZE)
 
-    labyrinth = Labyrinth("map1.tmx", [30, 46], 46)
-    hero = Hero("hero.png", (10, 9))
+    all_sprites = pygame.sprite.Group()
+
+    labyrinth = Labyrinth("map2.tmx", [30, 46], 46)
+    hero = Hero(load_image("cowboy.png"), 14, 10, (10, 9), all_sprites)
     enemy = Enemy("enemy.png", (19, 9))
+    fog = Fog(screen)
     game = Game(labyrinth, hero, enemy)
 
     clock = pygame.time.Clock()
@@ -160,12 +216,17 @@ def main():
             game.update_hero()
         screen.fill((0, 0, 0))
         game.render(screen)
-        if game.check_win():
-            game_over = True
-            show_message(screen, "You won!")
-        if game.check_lose():
-            game_over = True
-            show_message(screen, "You lost!")
+        if night:
+            fog.render_fog()
+
+        # функцию проверки победителя закоммитил, ибо она нам найиг не нужна, но мусть пока здесь побудет
+        #if game.check_win():
+        #    game_over = True
+        #    show_message(screen, "You won!")
+        #if game.check_lose():
+        #    game_over = True
+        #    show_message(screen, "You lost!")
+        hero.update()
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()
