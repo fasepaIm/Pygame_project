@@ -7,6 +7,7 @@ import os
 import random
 from pygame import *
 from player import Player
+from enemy import Enemy
 from blocks import Platform
 from particles import ParticlePrinciple
 
@@ -108,8 +109,10 @@ def main():
        "----------------------------------"]
 
     hero = Player(55,55) # создаем героя по (x,y) координатам
+    enemy = Enemy(100, 100)
     entities = pygame.sprite.Group() # Все объекты
     platforms = [] # то, во что мы будем врезаться или опираться
+    entities.add(enemy)
     entities.add(hero)
 
     x = y = 0 # координаты
