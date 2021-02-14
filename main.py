@@ -6,8 +6,8 @@ from pygame import *
 
 
 
-WINDOW_SIZE = WINDOW_WIDTH, WINDOW_HEIGHT = 672, 608
-FPS = 15
+WINDOW_SIZE = WINDOW_WIDTH, WINDOW_HEIGHT = 900, 600
+FPS = 60
 MAPS_DIR = "maps"
 TITLE_SIZE = 32
 ENEMY_EVENT_TYPE = 30
@@ -132,7 +132,7 @@ class Game:
     def render(self, screen):
         self.labyrinth.render(screen)
         self.hero.render(screen)
-        self.enemy.render(screen)
+        #self.enemy.render(screen)
 
     def update_hero(self):
         next_x, next_y = self.hero.get_position()
@@ -191,7 +191,7 @@ class Fog:
 
 def main():
     pygame.init()
-    night = True # захочешь убрать ночной режим - выставь False
+    night = False # захочешь убрать ночной режим - выставь False
     screen = pygame.display.set_mode(WINDOW_SIZE)
 
     all_sprites = pygame.sprite.Group()
@@ -219,7 +219,6 @@ def main():
         if night:
             fog.render_fog()
 
-        # функцию проверки победителя закоммитил, ибо она нам найиг не нужна, но мусть пока здесь побудет
         #if game.check_win():
         #    game_over = True
         #    show_message(screen, "You won!")

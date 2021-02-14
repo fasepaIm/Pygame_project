@@ -8,6 +8,20 @@
         "."
     ],
     "fileStates": {
+        "/home/legend/Desktop/Pygame_project-master/maps/1e66a9f5eef998b3b1491145b8aff4d5--tile-ideas-sprites.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/legend/Desktop/Pygame_project-master/maps/map2.tmx": {
+            "scale": 0.14495849609375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 2048.862315789474,
+                "y": 2052.3115789473686
+            }
+        },
+        "/home/legend/Desktop/Pygame_project-master/maps/tmw_desert_spacing.tsx": {
+            "scaleInDock": 1
+        },
         "/home/legend/Downloads/Telegram Desktop/1e66a9f5eef998b3b1491145b8aff4d5--tile-ideas-sprites.tsx": {
             "scaleInDock": 1
         },
@@ -38,8 +52,8 @@
             "scale": 0.125,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 3136,
-                "y": 372
+                "x": 2008,
+                "y": 2300
             }
         },
         "tmw_desert_spacing.tsx": {
@@ -47,18 +61,18 @@
             "scaleInEditor": 1
         }
     },
-    "map.height": 19,
+    "map.height": 30,
     "map.lastUsedFormat": "tmx",
     "map.layerDataFormat": null,
-    "map.width": 21,
+    "map.width": 30,
     "openFiles": [
-        "map2.tmx",
-        "1e66a9f5eef998b3b1491145b8aff4d5--tile-ideas-sprites.tsx"
+        "map2.tmx"
     ],
     "project": "labyrinth.tiled-project",
     "recentFiles": [
-        "1e66a9f5eef998b3b1491145b8aff4d5--tile-ideas-sprites.tsx",
         "map2.tmx",
+        "1e66a9f5eef998b3b1491145b8aff4d5--tile-ideas-sprites.tsx",
+        "/home/legend/Desktop/Pygame_project-master/maps/map2.tmx",
         "map1.tmx",
         "/home/legend/Downloads/Telegram Desktop/map2.tmx",
         "tmw_desert_spacing.tsx"

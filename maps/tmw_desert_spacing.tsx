@@ -2,7 +2,7 @@
 <tileset version="1.4" tiledversion="1.4.3" name="tmw_desert_spacing" tilewidth="32" tileheight="32" spacing="1" margin="1" tilecount="48" columns="8">
  <image source="tmw_desert_spacing.png" width="265" height="199"/>
  <terraintypes>
-  <terrain name="walls" tile="-1"/>
+  <terrain name="wall" tile="-1"/>
  </terraintypes>
  <tile id="24" terrain=",,,0"/>
  <tile id="25" terrain=",,0,0"/>
