@@ -1,4 +1,4 @@
-#            #self.rect = rect(x, y, WIDTH, WIDTH)!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Импортируем библиотеку pygame
@@ -8,6 +8,7 @@ import random
 from pygame import *
 from player import Player
 from blocks import Platform
+from particles import ParticlePrinciple
 
 #Объявляем переменные
 WIN_WIDTH = 800 #Ширина создаваемого окна
@@ -54,44 +55,6 @@ class Fog:
         self.screen.blit(self.fog, (0, 0), special_flags=pygame.BLEND_MULT)
 
 
-class ParticlePrinciple:
-    def __init__(self, screen):
-        self.screen = screen
-        self.particles = []
-
-    def emit(self):
-        if self.particles:
-            self.delete_particles()
-            for particle in self.particles:
-                particle[0][1] += particle[2][0]
-                particle[0][0] += particle[2][1]
-                particle[1] -= 0.2
-                pygame.draw.circle(self.screen, pygame.Color('Gray'), particle[0], int(particle[1]))
-
-    def add_particles(self, left, right, up, down, center_coords):
-        #pos_x = pygame.mouse.get_pos()[0]
-        #pos_y = pygame.mouse.get_pos()[1]
-        pos_x, pos_y = center_coords
-        if left:
-            pos_x += 12
-            pos_y += 12
-        elif right:
-            pos_x -= 12
-        elif up:
-            pos_y += 12
-        elif down:
-            pos_y -= 12
-        radius = 5
-        direction_x = random.randint(-3, 3)
-        direction_y = random.randint(-3, 3)
-        particle_circle = [[pos_x, pos_y], radius, [direction_x, direction_y]]
-        self.particles.append(particle_circle)
-
-    def delete_particles(self):
-        particle_copy = [particle for particle in self.particles if particle[1] > 0]
-        self.particles = particle_copy
-
-
 class Camera(object):
     def __init__(self, camera_func, width, height):
         self.camera_func = camera_func
@@ -128,7 +91,7 @@ def main():
        "--                               -",
        "-                                -",
        "-                   ----     --- -",
-       "-                                -",
+       "-   -----------                  -",
        "--                               -",
        "-                                -",
        "-                            --- -",
