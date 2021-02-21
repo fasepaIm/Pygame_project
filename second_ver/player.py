@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from pygame import *
-import pyganim
 
-MOVE_SPEED = 1
+MOVE_SPEED = 10
 WIDTH = 30
 HEIGHT = 30
 COLOR =  "#888888"

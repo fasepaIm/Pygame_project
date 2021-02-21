@@ -5,26 +5,30 @@
 import pygame
 import os
 import random
+import pytmx
 from pygame import *
 from player import Player
 from enemy import Enemy
-from blocks import Platform
+from tiled_map import TiledMap
 from particles import ParticlePrinciple
 
 #Объявляем переменные
+TOTAL_LEVEL_WIDTH = 0
+TOTAL_LEVEL_HEIGHT = 0
 WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
-BACKGROUND_COLOR = pygame.Color('brown')
-TITLE_SIZE = 32
-PLATFORM_WIDTH = 32
-PLATFORM_HEIGHT = 32
-PLATFORM_COLOR = "#FF6262"
+#BACKGROUND_COLOR = pygame.Color('brown')
+#TITLE_SIZE = 32
+#PLATFORM_WIDTH = 32
+#PLATFORM_HEIGHT = 32
+#PLATFORM_COLOR = "#FF6262"
 NIGHT_COLOR = (20, 20, 20)
 LIGHT_RADIUS = (500, 500)
 LIGHT_MASK = "light_350_med.png"
 
 PARTICLE_EVENT = pygame.USEREVENT + 1
+pygame.init() # Инициация PyGame, обязательная строчка 
 
 
 def load_image(name, colorkey=None):
@@ -35,6 +39,17 @@ def load_image(name, colorkey=None):
         sys.exit()
     image = pygame.image.load(fullname)
     return image
+
+
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self, walls, x, y, w, h):
+        self.groups = walls
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.rect = pygame.Rect(x, y, w, h)
+        self.x = x
+        self.y = y
+        self.rect.x = x
+        self.rect.y = y
 
 # класс для создания тумана/ночного освещения
 class Fog:
@@ -64,6 +79,9 @@ class Camera(object):
     def apply(self, target):
         return target.rect.move(self.state.topleft)
 
+    def apply_rect(self, rect):
+        return rect.move(self.state.topleft)
+
     def update(self, target):
         self.state = self.camera_func(self.state, target.rect)
 
@@ -82,68 +100,86 @@ def camera_configure(camera, target_rect):
 
 
 def main():
-    level = [
-       "----------------------------------",
-       "-                                -",
-       "-                       --       -",
-       "-                                -",
-       "-            --                  -",
-       "-                                -",
-       "--                               -",
-       "-                                -",
-       "-                   ----     --- -",
-       "-   -----------                  -",
-       "--                               -",
-       "-                                -",
-       "-                            --- -",
-       "-                                -",
-       "-                                -",
-       "-      ---                       -",
-       "-                                -",
-       "-   -------         ----         -",
-       "-                                -",
-       "-                         -      -",
-       "-                            --  -",
-       "-                                -",
-       "-                                -",
-       "----------------------------------"]
+    #level = [
+    #   "----------------------------------",
+    #   "-                                -",
+    #   "-                       --       -",
+    #   "-                                -",
+    #   "-            --                  -",
+    #   "-                                -",
+    #   "--                               -",
+    #   "-                                -",
+    #   "-                   ----     --- -",
+    #   "-   -----------                  -",
+    #   "--                               -",
+    #   "-                                -",
+    #   "-                            --- -",
+    #   "-                                -",
+    #   "-                                -",
+    #   "-      ---                       -",
+    #   "-                                -",
+    #   "-   -------         ----         -",
+    #   "-                                -",
+    #   "-                         -      -",
+    #   "-                            --  -",
+    #   "-                                -",
+    #   "-                                -",
+    #   "----------------------------------"]
 
-    hero = Player(55,55) # создаем героя по (x,y) координатам
-    enemy = Enemy(100, 100)
-    entities = pygame.sprite.Group() # Все объекты
-    platforms = [] # то, во что мы будем врезаться или опираться
-    entities.add(enemy)
-    entities.add(hero)
+   
 
-    x = y = 0 # координаты
-    for row in level: # вся строка
-        for col in row: # каждый символ
-            if col == "-":
-                pf = Platform(x,y)
-                entities.add(pf)
-                platforms.append(pf)
-
-            x += PLATFORM_WIDTH # блоки платформы ставятся на ширине блоков
-        y += PLATFORM_HEIGHT    # то же самое и с высотой
-        x = 0                   # на каждой новой строчке начинаем с нуля
+    #x = y = 0 # координаты
+    #for row in level: # вся строка
+    #    for col in row: # каждый символ
+    #        if col == "-":
+    #            pf = Platform(x,y)
+    #            entities.add(pf)
+    #            platforms.append(pf)
+    #
+    #        x += PLATFORM_WIDTH # блоки платформы ставятся на ширине блоков
+    #    y += PLATFORM_HEIGHT    # то же самое и с высотой
+    #    x = 0                   # на каждой новой строчке начинаем с нуля
 
 
     left = right = up = down = False    # по умолчанию — стоим
-    night = True
+    night = False
     timer = pygame.time.Clock()
     
-    pygame.init() # Инициация PyGame, обязательная строчка 
     screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
     pygame.display.set_caption("Tanks") # Пишем в шапку
-    bg = Surface((WIN_WIDTH,WIN_HEIGHT)) # Создание видимой поверхности
+    #bg = Surface((WIN_WIDTH,WIN_HEIGHT)) # Создание видимой поверхности
                                          # будем использовать как фон
-    bg.fill(Color(BACKGROUND_COLOR))     # Заливаем поверхность сплошным цветом
+    #bg.fill(Color(BACKGROUND_COLOR))     # Заливаем поверхность сплошным цветом
     running = True
 
-    total_level_width  = len(level[0])*PLATFORM_WIDTH # Высчитываем фактическую ширину уровня
-    total_level_height = len(level)*PLATFORM_HEIGHT   # высоту
-   
-    camera = Camera(camera_configure, total_level_width, total_level_height)
+    map_folder = 'maps'
+    Map = TiledMap('maps/level1.tmx')
+    map_img = Map.make_map()
+    map_rect = map_img.get_rect()
+    TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT = Map.get_sizes()
+
+
+    #total_level_width  = len(level[0])*PLATFORM_WIDTH # Высчитываем фактическую ширину уровня
+    #total_level_height = len(level)*PLATFORM_HEIGHT   # высоту
+
+    #hero = Player(55,55) # создаем героя по (x,y) координатам
+    enemy = Enemy(100, 100)
+    platforms = []
+    all_sprites = pygame.sprite.Group() # Все объекты
+    walls = pygame.sprite.Group()
+    
+    for tile_object in Map.tmxdata.objects:
+        if tile_object.name == 'player':
+            hero = Player(tile_object.x, tile_object.y)
+        if tile_object.name == 'wall':
+            Obstacle(walls, tile_object.x, tile_object.y, 
+                     tile_object.width, tile_object.height)
+
+    all_sprites.add(enemy)
+    all_sprites.add(hero)
+
+      
+    camera = Camera(camera_configure, TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT)
     key_state = pygame.key.get_pressed()
 
     fog = Fog(screen, camera, hero)
@@ -197,7 +233,8 @@ def main():
             draw_particle = True
             hero.update(left, right, up, down, platforms) # передвижение
                 
-        screen.blit(bg, (0,0))      # Каждую итерацию необходимо всё перерисовывать 
+        #screen.blit(bg, (0,0))      # Каждую итерацию необходимо всё перерисовывать 
+        screen.blit(map_img, camera.apply_rect(map_rect))
          
         camera.update(hero) # центризируем камеру относительно персонажа
 
@@ -205,7 +242,7 @@ def main():
             fog.render_fog()
         if draw_particle:
             particle1.emit()
-        for e in entities:
+        for e in all_sprites:
             screen.blit(e.image, camera.apply(e)) # отображение всего
         pygame.display.update()     # обновление и вывод всех изменений на экран
         
