@@ -1,19 +1,34 @@
-import os
-import sys
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Импортируем библиотеки
 import pygame
+import os
+import random
 import pytmx
+from os import path
 from pygame import *
+from player import *
+from enemy import *
+from tiled_map import TiledMap
+from particles import ParticlePrinciple
 
-
-
-WINDOW_SIZE = WINDOW_WIDTH, WINDOW_HEIGHT = 900, 600
-FPS = 60
-MAPS_DIR = "maps"
-TITLE_SIZE = 32
-ENEMY_EVENT_TYPE = 30
+#Объявляем переменные
+TOTAL_LEVEL_WIDTH = 0
+TOTAL_LEVEL_HEIGHT = 0
+WIN_WIDTH = 800 #Ширина создаваемого окна
+WIN_HEIGHT = 640 # Высота
+DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
 NIGHT_COLOR = (20, 20, 20)
 LIGHT_RADIUS = (500, 500)
+IMG_FOLDER = 'data'
 LIGHT_MASK = "light_350_med.png"
+
+MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png',
+                  'whitePuff17.png', 'whitePuff18.png']
+
+PARTICLE_EVENT = pygame.USEREVENT + 1
+pygame.init() # Инициация PyGame, обязательная строчка 
 
 
 def load_image(name, colorkey=None):
@@ -26,155 +41,24 @@ def load_image(name, colorkey=None):
     return image
 
 
-class Labyrinth:
-    def __init__(self, filename, free_tiles, finish_tile):
-        self.map = pytmx.load_pygame(f"{MAPS_DIR}/{filename}")
-        self.height = self.map.height
-        self.width = self.map.width
-        self.tile_size = self.map.tilewidth
-        self.free_tiles = free_tiles
-        self.finish_tile = finish_tile
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self, walls, x, y, w, h):
+        self.groups = walls
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.rect = pygame.Rect(x, y, w, h)
+        self.x = x
+        self.y = y
+        self.rect.x = x
+        self.rect.y = y
 
-    def render(self, screen):
-        for y in range(self.height):
-            for x in range(self.width):
-                image = self.map.get_tile_image(x, y, 0)
-                screen.blit(image, (x * self.tile_size, y * self.tile_size))
-
-    def get_tile_id(self, position):
-        return self.map.tiledgidmap[self.map.get_tile_gid(*position, 0)]
-
-    def is_free(self, position):
-        return self.get_tile_id(position) in self.free_tiles
-
-    def find_path_step(self, start, target):
-        INF = 1000
-        x, y = start
-        distance = [[INF] * self.width for _ in range(self.height)]
-        distance[y][x] = 0
-        prev = [[None] * self.width for _ in range(self.height)]
-        queue = [(x, y)]
-        while queue:
-            x, y = queue.pop(0)
-            for dx, dy in (1, 0), (0, 1), (-1, 0), (0, -1):
-                next_x, next_y = x + dx, y + dy
-                if 0 <= next_x < self.width and 0 < next_y < self.height and \
-                        self.is_free((next_x, next_y)) and distance[next_y][next_x] == INF:
-                    distance[next_y][next_x] = distance[y][x] + 1
-                    prev[next_y][next_x] = (x, y)
-                    queue.append((next_x, next_y))
-        x, y = target
-        if distance[y][x] == INF or start == target:
-            return start
-        while prev[y][x] != start:
-            x, y = prev[y][x]
-        return x, y
-
-# класс героя (инициализация уже переделана под анимированный спрайт)
-class Hero(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, position, all_sprites):
-        super().__init__(all_sprites)
-        self.frames = []
-        self.cut_sheet(sheet, columns, rows)
-        self.cur_frame = 0
-        self.image = self.frames[self.cur_frame]
-        self.rect.x, self.rect.y = position
-
-        
-    def cut_sheet(self, sheet, columns, rows):
-        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, 
-                                sheet.get_height() // rows)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(sheet.subsurface(pygame.Rect(
-                    frame_location, self.rect.size)))
-
-    def update(self):
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]
-       
-    def get_position(self):
-        return self.rect.x, self.rect.y
-
-    def set_position(self, position):
-        self.rect.x, self.rect.y = position
-
-    def render(self, screen):
-        delta = (self.image.get_width() - TITLE_SIZE) // 2
-        screen.blit(self.image, (self.rect.x * TITLE_SIZE - delta, self.rect.y * TITLE_SIZE - delta))
-
-
-class Enemy:
-    def __init__(self, pic, position):
-        self.x, self.y = position
-        self.delay = 100
-        pygame.time.set_timer(ENEMY_EVENT_TYPE, self.delay)
-        self.image = pygame.image.load(f"images/{pic}")
-
-    def get_position(self):
-        return self.x, self.y
-
-    def set_position(self, position):
-        self.x, self.y = position
-
-    def render(self, screen):
-        delta = (self.image.get_width() - TITLE_SIZE) // 2
-        screen.blit(self.image, (self.x * TITLE_SIZE - delta, self.y * TITLE_SIZE - delta)) 
-
-
-class Game:
-    def __init__(self, labyrinth, hero, enemy):
-        self.labyrinth = labyrinth
-        self.hero = hero
-        self.enemy = enemy
-
-    def render(self, screen):
-        self.labyrinth.render(screen)
-        self.hero.render(screen)
-        #self.enemy.render(screen)
-
-    def update_hero(self):
-        next_x, next_y = self.hero.get_position()
-        if pygame.key.get_pressed()[pygame.K_LEFT]:
-            next_x -= 1
-        if pygame.key.get_pressed()[pygame.K_RIGHT]:
-            next_x += 1
-        if pygame.key.get_pressed()[pygame.K_UP]:
-            next_y -= 1
-        if pygame.key.get_pressed()[pygame.K_DOWN]:
-            next_y += 1
-        if self.labyrinth.is_free((next_x, next_y)):
-            self.hero.set_position((next_x, next_y))
-
-    def move_enemy(self):
-        next_position = self.labyrinth.find_path_step(self.enemy.get_position(),
-                                                      self.hero.get_position())
-        self.enemy.set_position(next_position)
-
-    def check_win(self):
-        return self.labyrinth.get_tile_id(self.hero.get_position()) == self.labyrinth.finish_tile
-
-    def check_lose(self):
-        return self.hero.get_position() == self.enemy.get_position()
-
-
-def show_message(screen, message):
-    font = pygame.font.Font(None, 50)
-    text = font.render(message, 1, (50, 70, 0))
-    text_x = WINDOW_WIDTH // 2 - text.get_width() // 2
-    text_y = WINDOW_HEIGHT // 2 - text.get_height() // 2
-    text_w = text.get_width()
-    text_h = text.get_height()
-    pygame.draw.rect(screen, (200, 150, 50), (text_x - 10, text_y - 10,
-                                              text_w + 20, text_h + 20))
-    screen.blit(text, (text_x, text_y))
 
 # класс для создания тумана/ночного освещения
 class Fog:
-    def __init__(self, screen):
+    def __init__(self, screen, camera, hero):
         self.screen = screen
-        self.fog = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.camera = camera
+        self.player = hero
+        self.fog = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
         self.fog.fill(NIGHT_COLOR)
         self.light_mask = load_image(LIGHT_MASK).convert_alpha()
         self.light_mask = pygame.transform.scale(self.light_mask, LIGHT_RADIUS)
@@ -183,53 +67,154 @@ class Fog:
 
     def render_fog(self):
         self.fog.fill(NIGHT_COLOR)
-        #self.light_rect.center = self.camera.apply(self.player).center
-        self.light_rect.center = (10 * TITLE_SIZE, 9 * TITLE_SIZE)
+        self.light_rect.center = self.camera.apply(self.player).center
         self.fog.blit(self.light_mask, self.light_rect)
         self.screen.blit(self.fog, (0, 0), special_flags=pygame.BLEND_MULT)
 
 
+class Camera(object):
+    def __init__(self, camera_func, width, height):
+        self.camera_func = camera_func
+        self.state = Rect(0, 0, width, height)
+	
+    def apply(self, target):
+        return target.rect.move(self.state.topleft)
+
+    def apply_rect(self, rect):
+        return rect.move(self.state.topleft)
+
+    def update(self, target):
+        self.state = self.camera_func(self.state, target.rect)
+
+
+def camera_configure(camera, target_rect):
+    l, t, _, _ = target_rect
+    _, _, w, h = camera
+    l, t = -l+WIN_WIDTH / 2, -t+WIN_HEIGHT / 2
+
+    l = min(0, l)                           # Не движемся дальше левой границы
+    l = max(-(camera.width-WIN_WIDTH), l)   # Не движемся дальше правой границы
+    t = max(-(camera.height-WIN_HEIGHT), t) # Не движемся дальше нижней границы
+    t = min(0, t)                           # Не движемся дальше верхней границы
+
+    return Rect(l, t, w, h)
+
+
 def main():
-    pygame.init()
-    night = False # захочешь убрать ночной режим - выставь False
-    screen = pygame.display.set_mode(WINDOW_SIZE)
-
-    all_sprites = pygame.sprite.Group()
-
-    labyrinth = Labyrinth("map2.tmx", [30, 46], 46)
-    hero = Hero(load_image("cowboy.png"), 14, 10, (10, 9), all_sprites)
-    enemy = Enemy("enemy.png", (19, 9))
-    fog = Fog(screen)
-    game = Game(labyrinth, hero, enemy)
-
-    clock = pygame.time.Clock()
+    left = right = up = down = False    # по умолчанию — стоим
+    night = False
+    timer = pygame.time.Clock()
+    
+    screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
+    pygame.display.set_caption("Tanks") # Пишем в шапку
     running = True
-    game_over = False
 
-    while running:
-        for event in pygame.event.get():
+    map_folder = 'maps'
+    Map = TiledMap('maps/level1.tmx')
+    map_img = Map.make_map()
+    map_rect = map_img.get_rect()
+    TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT = Map.get_sizes()
+
+
+    #hero = Player(55,55) # создаем героя по (x,y) координатам
+    enemy = Enemy(100, 100)
+    all_sprites = pygame.sprite.Group() # Все объекты
+    walls = pygame.sprite.Group()
+    bullets = pygame.sprite.Group()
+    muzzle_flash = pygame.sprite.Group()
+    #enemy = pygame.sprite.Group()
+
+    
+    for tile_object in Map.tmxdata.objects:
+        if tile_object.name == 'player':
+            hero = Player(tile_object.x, tile_object.y)
+        if tile_object.name == 'wall':
+            Obstacle(walls, tile_object.x, tile_object.y, 
+                     tile_object.width, tile_object.height)
+
+    all_sprites.add(enemy)
+    all_sprites.add(hero)
+      
+    camera = Camera(camera_configure, TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT)
+    key_state = pygame.key.get_pressed()
+
+    fog = Fog(screen, camera, hero)
+    pygame.time.set_timer(PARTICLE_EVENT,70)
+    particle1 = ParticlePrinciple(screen)
+    draw_particle = False
+
+    gun_flashes = []
+    for img in MUZZLE_FLASHES:
+        gun_flashes.append(pygame.image.load(path.join(IMG_FOLDER, img)).convert_alpha())
+
+
+    while running: # Основной цикл программы
+        timer.tick(60)
+        for event in pygame.event.get(): # Обрабатываем события
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == ENEMY_EVENT_TYPE and not game_over:
-                game.move_enemy()
-        if not game_over:
-            game.update_hero()
-        screen.fill((0, 0, 0))
-        game.render(screen)
+
+            elif event.type == KEYDOWN:
+                key_state = pygame.key.get_pressed()
+
+                if event.key == K_SPACE:
+                    #now = pygame.time.get_ticks()
+                    Bullet(all_sprites, bullets, walls, hero.rect.center, hero)
+                    MuzzleFlash(all_sprites, muzzle_flash, gun_flashes, hero.rect.center)
+
+            elif event.type == KEYUP:
+                key_state = pygame.key.get_pressed()
+                draw_particle = False
+                if event.key == K_RIGHT:
+                    right = False
+                elif event.key == K_LEFT:
+                    left = False
+                elif event.key == K_UP:
+                    up = False
+                elif event.key == K_DOWN:
+                    down = False
+
+            if event.type == PARTICLE_EVENT:
+                center_coords = camera.apply(hero).center
+                particle1.add_particles(left, right, up, down, center_coords)
+                
+        if key_state[K_LEFT]:
+            left = True
+            draw_particle = True
+            hero.update(left, right, up, down, walls) # передвижение
+
+        elif key_state[K_RIGHT]:
+            right = True
+            draw_particle = True
+            hero.update(left, right, up, down, walls) # передвижение
+
+        elif key_state[K_UP]:
+            up = True
+            draw_particle = True
+            hero.update(left, right, up, down, walls) # передвижение
+
+        elif key_state[K_DOWN]:
+            down = True
+            draw_particle = True
+            hero.update(left, right, up, down, walls) # передвижение
+                
+        screen.blit(map_img, camera.apply_rect(map_rect)) # Каждую итерацию необходимо всё перерисовывать 
+
+        camera.update(hero) # центризируем камеру относительно персонажа        
+
+        bullets.update()
+        muzzle_flash.update()
+
+
         if night:
             fog.render_fog()
+        if draw_particle:
+            particle1.emit()
+        for e in all_sprites:
+            screen.blit(e.image, camera.apply(e)) # отображение всего
 
-        #if game.check_win():
-        #    game_over = True
-        #    show_message(screen, "You won!")
-        #if game.check_lose():
-        #    game_over = True
-        #    show_message(screen, "You lost!")
-        hero.update()
-        pygame.display.flip()
-        clock.tick(FPS)
-    pygame.quit()
-
+        pygame.display.update()     # обновление и вывод всех изменений на экран
+        
 
 if __name__ == "__main__":
     main()
