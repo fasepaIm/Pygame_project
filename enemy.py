@@ -2,51 +2,45 @@
 # -*- coding: utf-8 -*-
 
 from pygame import *
-import pyganim
+import pygame
+vec = pygame.math.Vector2
 
 MOVE_SPEED = 1
 WIDTH = 30
 HEIGHT = 30
 COLOR =  "#888888"
 
-IMAGE_RIGHT = 'tank/r2.png'
-IMAGE_LEFT = 'tank/l2.png'
-IMAGE_UP = 'tank/u2.png'
-IMAGE_DOWN = 'tank/d2.png'
+IMAGE_RIGHT = 'tank/r3.png'
+IMAGE_LEFT = 'tank/l3.png'
+IMAGE_UP = 'tank/u3.png'
+IMAGE_DOWN = 'tank/d3.png'
+
+ENEMY_SPEED = 5
 
 
 class Enemy(sprite.Sprite):
-    def __init__(self, x, y):
-        sprite.Sprite.__init__(self)
-        self.startX = x # Начальная позиция Х, пригодится когда будем переигрывать уровень
-        self.startY = y
+    def __init__(self, all_sprites, hero, enemies, x, y):
+        self.groups = all_sprites, enemies
+        sprite.Sprite.__init__(self, self.groups)
+        self.x = x # Начальная позиция Х, пригодится когда будем переигрывать уровень
+        self.y = y
+        self.hero = hero
         self.image = image.load(IMAGE_UP)
-        self.rect = Rect(x, y, WIDTH, HEIGHT)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
         
-    def update(self, left, right, up, down, platforms):
-        self.xvel = 0
-        self.yvel = 0
-        if up:
-            self.yvel = -MOVE_SPEED
-            self.image = image.load(IMAGE_UP)
-
-        elif down:
-            self.yvel = MOVE_SPEED
-            self.image = image.load(IMAGE_DOWN)
-                       
-        elif left:
-            self.xvel = -MOVE_SPEED # Лево = x- n
-            self.image = image.load(IMAGE_LEFT)
- 
-        elif right:
-            self.xvel = MOVE_SPEED # Право = x + n
-            self.image = image.load(IMAGE_RIGHT)
-
-        self.rect.y += self.yvel
-        self.collide(0, self.yvel, platforms)
-
-        self.rect.x += self.xvel # переносим свои положение на xvel
-        self.collide(self.xvel, 0, platforms)
+    def update(self, dt):
+        if self.hero.pos[0] > self.rect.x:
+            self.rect.x += ENEMY_SPEED
+        if self.hero.pos[0] < self.rect.x:
+            self.rect.x -= ENEMY_SPEED
+        if self.hero.pos[1] > self.rect.y:
+            self.rect.y += ENEMY_SPEED
+        if self.hero.pos[1] < self.rect.y:
+            self.rect.y -= ENEMY_SPEED        
+        #self.rect = self.image.get_rect()
+        #self.rect.center = self.pos 
+        
 
     def collide(self, xvel, yvel, platforms):
         for p in platforms:
@@ -56,7 +50,7 @@ class Enemy(sprite.Sprite):
                     self.rect.right = p.rect.left # то не движется вправо
 
                 if xvel < 0:                      # если движется влево
-                    self.rect.left = p.rect.right # то не движется влево
+                     self.rect.left = p.rect.right # то не движется влево
 
                 if yvel > 0:                      # если падает вниз
                     self.rect.bottom = p.rect.top # то не падает вниз
@@ -69,4 +63,3 @@ class Enemy(sprite.Sprite):
 
     def get_position(self):
         return (self.rect.x, self.rect.y)
-

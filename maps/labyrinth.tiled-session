@@ -1,0 +1,25 @@
+{
+    "activeFile": "level1.tmx",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "level1.tmx": {
+            "scale": 0.75,
+            "selectedLayer": 4,
+            "viewCenter": {
+                "x": 1792.6666666666665,
+                "y": 679.3333333333333
+            }
+        },
+        "level1.tmx#spritesheet_tiles": {
+            "scaleInDock": 1
+        }
+    },
+    "openFiles": [
+        "level1.tmx"
+    ],
+    "project": "",
+    "recentFiles": [
+        "level1.tmx"
+    ]
+}

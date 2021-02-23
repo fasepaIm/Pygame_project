@@ -7,13 +7,19 @@ import os
 import random
 import pytmx
 from os import path
+from menu import *
 from pygame import *
 from player import *
-from enemy import *
-from tiled_map import TiledMap
-from particles import ParticlePrinciple
+from tiled_map import *
+from particles import *
+
 
 #Объявляем переменные
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+WHITE = (255, 255, 255)
+
 TOTAL_LEVEL_WIDTH = 0
 TOTAL_LEVEL_HEIGHT = 0
 WIN_WIDTH = 800 #Ширина создаваемого окна
@@ -26,6 +32,8 @@ LIGHT_MASK = "light_350_med.png"
 
 MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png',
                   'whitePuff17.png', 'whitePuff18.png']
+
+FPS = 60
 
 PARTICLE_EVENT = pygame.USEREVENT + 1
 pygame.init() # Инициация PyGame, обязательная строчка 
@@ -99,8 +107,42 @@ def camera_configure(camera, target_rect):
 
     return Rect(l, t, w, h)
 
+def draw_player_health(surf, x, y, pct):
+    if pct < 0:
+        pct = 0
+    BAR_LENGTH = 100
+    BAR_HEIGHT = 20
+    fill = pct * BAR_LENGTH
+    outline_rect = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
+    fill_rect = pygame.Rect(x, y, fill, BAR_HEIGHT)
+    if pct > 0.6:
+        col = GREEN
+    elif pct > 0.3:
+        col = YELLOW
+    else:
+        col = RED
+    pygame.draw.rect(surf, col, fill_rect)
+    pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
-def main():
+
+def menu_show():
+    menu_background = pygame.image.load('data/menu.jpg')
+    font_type = pygame.font.Font('fonts/20219.ttf', 50)
+    show = True
+    start_btn = Button(220, 70)
+    quit_btn = Button(120, 70)
+    screen = pygame.display.set_mode(DISPLAY)
+    while show: # Основной цикл программы
+        for event in pygame.event.get(): # Обрабатываем события
+            if event.type == pygame.QUIT:
+                show = False
+            screen.blit(menu_background, (0, 0))
+            start_btn.draw(screen, 300, 300, 'Play game', font_type, game)
+            quit_btn.draw(screen, 350, 380, 'Quit', font_type, quit)
+            pygame.display.update()
+
+
+def game():
     left = right = up = down = False    # по умолчанию — стоим
     night = False
     timer = pygame.time.Clock()
@@ -115,24 +157,22 @@ def main():
     map_rect = map_img.get_rect()
     TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT = Map.get_sizes()
 
-
-    #hero = Player(55,55) # создаем героя по (x,y) координатам
-    enemy = Enemy(100, 100)
     all_sprites = pygame.sprite.Group() # Все объекты
+    enemies = pygame.sprite.Group()
     walls = pygame.sprite.Group()
     bullets = pygame.sprite.Group()
     muzzle_flash = pygame.sprite.Group()
-    #enemy = pygame.sprite.Group()
-
+    boom_flash = pygame.sprite.Group()
     
     for tile_object in Map.tmxdata.objects:
         if tile_object.name == 'player':
             hero = Player(tile_object.x, tile_object.y)
+        if tile_object.name == 'enemy':
+            Enemy(all_sprites, hero, enemies, tile_object.x, tile_object.y)
         if tile_object.name == 'wall':
             Obstacle(walls, tile_object.x, tile_object.y, 
                      tile_object.width, tile_object.height)
 
-    all_sprites.add(enemy)
     all_sprites.add(hero)
       
     camera = Camera(camera_configure, TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT)
@@ -147,9 +187,12 @@ def main():
     for img in MUZZLE_FLASHES:
         gun_flashes.append(pygame.image.load(path.join(IMG_FOLDER, img)).convert_alpha())
 
+    clock = pygame.time.Clock()
 
     while running: # Основной цикл программы
-        timer.tick(60)
+        dt = clock.tick(FPS) / 1000.0
+        pygame.display.set_caption("{:.2f}".format(clock.get_fps()))
+
         for event in pygame.event.get(): # Обрабатываем события
             if event.type == pygame.QUIT:
                 running = False
@@ -158,8 +201,7 @@ def main():
                 key_state = pygame.key.get_pressed()
 
                 if event.key == K_SPACE:
-                    #now = pygame.time.get_ticks()
-                    Bullet(all_sprites, bullets, walls, hero.rect.center, hero)
+                    Bullet(all_sprites, bullets, walls, hero.rect.center, hero, boom_flash)
                     MuzzleFlash(all_sprites, muzzle_flash, gun_flashes, hero.rect.center)
 
             elif event.type == KEYUP:
@@ -181,40 +223,41 @@ def main():
         if key_state[K_LEFT]:
             left = True
             draw_particle = True
-            hero.update(left, right, up, down, walls) # передвижение
 
         elif key_state[K_RIGHT]:
             right = True
             draw_particle = True
-            hero.update(left, right, up, down, walls) # передвижение
 
         elif key_state[K_UP]:
             up = True
             draw_particle = True
-            hero.update(left, right, up, down, walls) # передвижение
 
         elif key_state[K_DOWN]:
             down = True
             draw_particle = True
-            hero.update(left, right, up, down, walls) # передвижение
                 
         screen.blit(map_img, camera.apply_rect(map_rect)) # Каждую итерацию необходимо всё перерисовывать 
 
         camera.update(hero) # центризируем камеру относительно персонажа        
 
+        hero.update(left, right, up, down, walls) 
         bullets.update()
         muzzle_flash.update()
+        boom_flash.update()
+        enemies.update(walls, bullets, all_sprites, boom_flash, hero)
+        draw_player_health(screen, 10, 10, hero.health / PLAYER_HEALTH)
 
 
+        if hero.health <= 0:
+            running = False
         if night:
             fog.render_fog()
         if draw_particle:
             particle1.emit()
         for e in all_sprites:
             screen.blit(e.image, camera.apply(e)) # отображение всего
-
         pygame.display.update()     # обновление и вывод всех изменений на экран
         
 
 if __name__ == "__main__":
-    main()
+    menu_show()
