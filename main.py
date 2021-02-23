@@ -7,7 +7,6 @@ import os
 import random
 import pytmx
 from os import path
-from menu import *
 from pygame import *
 from player import *
 from tiled_map import *
@@ -22,6 +21,7 @@ WHITE = (255, 255, 255)
 
 TOTAL_LEVEL_WIDTH = 0
 TOTAL_LEVEL_HEIGHT = 0
+GAME_OFF = False
 WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
@@ -80,6 +80,33 @@ class Fog:
         self.screen.blit(self.fog, (0, 0), special_flags=pygame.BLEND_MULT)
 
 
+class Button:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.inactive_color = (13, 162, 58)
+        self.active_color = (23, 190, 58)
+
+    def draw(self, screen, x, y, message, action=None):
+        global GAME_OFF
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+
+        if x < mouse[0] < x + self.width and y < mouse[1] < y + self.height:
+            pygame.draw.rect(screen, self.active_color, (x, y, self.width, self.height))
+            if click[0]:
+                if action == quit:
+                    GAME_OFF = True
+                    return
+                else:
+                    pygame.time.delay(300)
+                    action()
+
+        else:
+            pygame.draw.rect(screen, self.inactive_color, (x, y, self.width, self.height))
+        text_print(screen, x, y, message)
+
+
 class Camera(object):
     def __init__(self, camera_func, width, height):
         self.camera_func = camera_func
@@ -124,10 +151,15 @@ def draw_player_health(surf, x, y, pct):
     pygame.draw.rect(surf, col, fill_rect)
     pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
+def text_print(screen, x, y, message):
+    font_type = pygame.font.Font('fonts/20219.ttf', 50)
+    text = font_type.render(message, True, (0, 0, 0))
+    screen.blit(text, (x + 10, y + 10))
+
 
 def menu_show():
+    global GAME_OFF
     menu_background = pygame.image.load('data/menu.jpg')
-    font_type = pygame.font.Font('fonts/20219.ttf', 50)
     show = True
     start_btn = Button(220, 70)
     quit_btn = Button(120, 70)
@@ -137,8 +169,11 @@ def menu_show():
             if event.type == pygame.QUIT:
                 show = False
             screen.blit(menu_background, (0, 0))
-            start_btn.draw(screen, 300, 300, 'Play game', font_type, game)
-            quit_btn.draw(screen, 350, 380, 'Quit', font_type, quit)
+            start_btn.draw(screen, 300, 300, 'Play game', game)
+            quit_btn.draw(screen, 350, 380, 'Quit', quit)
+            if GAME_OFF:
+                show = False
+                break
             pygame.display.update()
 
 
