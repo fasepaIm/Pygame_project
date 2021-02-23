@@ -68,7 +68,7 @@ class Fog:
         self.player = hero
         self.fog = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
         self.fog.fill(NIGHT_COLOR)
-        self.light_mask = load_image(LIGHT_MASK).convert_alpha()
+        self.light_mask = pygame.image.load(path.join('data', LIGHT_MASK)).convert_alpha()
         self.light_mask = pygame.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
 
@@ -179,7 +179,7 @@ def menu_show():
 
 def game():
     left = right = up = down = False    # по умолчанию — стоим
-    night = False
+    night = True
     timer = pygame.time.Clock()
     
     screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
@@ -279,18 +279,18 @@ def game():
         bullets.update()
         muzzle_flash.update()
         boom_flash.update()
-        enemies.update(walls, bullets, all_sprites, boom_flash, hero)
-        draw_player_health(screen, 10, 10, hero.health / PLAYER_HEALTH)
+        enemies.update(walls, bullets, all_sprites, boom_flash, hero)      
 
 
         if hero.health <= 0:
             running = False
-        if night:
-            fog.render_fog()
         if draw_particle:
             particle1.emit()
         for e in all_sprites:
             screen.blit(e.image, camera.apply(e)) # отображение всего
+        if night:
+            fog.render_fog()
+        draw_player_health(screen, 10, 10, hero.health / PLAYER_HEALTH)
         pygame.display.update()     # обновление и вывод всех изменений на экран
         
 
