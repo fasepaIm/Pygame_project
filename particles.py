@@ -27,8 +27,6 @@ class ParticlePrinciple:
 
 
     def add_particles(self, left, right, up, down, center_coords):
-        #pos_x = pygame.mouse.get_pos()[0]
-        #pos_y = pygame.mouse.get_pos()[1]
         pos_x_1, pos_y_1 = center_coords
         pos_x_2, pos_y_2 = center_coords
         if left:

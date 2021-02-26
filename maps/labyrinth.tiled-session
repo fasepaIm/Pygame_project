@@ -1,25 +1,67 @@
 {
-    "activeFile": "level1.tmx",
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "",
     "expandedProjectPaths": [
     ],
     "fileStates": {
+        "": {
+            "scaleInDock": 0.75
+        },
         "level1.tmx": {
-            "scale": 0.75,
+            "scale": 0.20573437499999997,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 1792.6666666666665,
-                "y": 679.3333333333333
+                "x": 1601.5797068428649,
+                "y": 964.8363332573861
             }
         },
         "level1.tmx#spritesheet_tiles": {
             "scaleInDock": 1
+        },
+        "level2.tmx": {
+            "scale": 1,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 192.5,
+                "y": 189.5
+            }
+        },
+        "level2.tmx#d5c4ijw-b5d34078-ed18-4380-aeb7-bbdbda1fb6d7": {
+            "scaleInDock": 1
+        },
+        "level2.tmx#spritesheet_tiles": {
+            "scaleInDock": 0.75
+        },
+        "tiled1.tmx": {
+            "scale": 0.20573437499999997,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1601.5797068428649,
+                "y": 964.8363332573861
+            }
+        },
+        "tiled1.tmx#Kenney Topdown Pack": {
+            "scaleInDock": 1
         }
     },
+    "map.height": 25,
+    "map.lastUsedFormat": "tmx",
+    "map.width": 35,
     "openFiles": [
-        "level1.tmx"
     ],
     "project": "",
     "recentFiles": [
-        "level1.tmx"
-    ]
+        "tiled1.tmx"
+    ],
+    "tileset.embedInMap": true,
+    "tileset.margin": 0,
+    "tileset.spacing": 0,
+    "tileset.tileSize": {
+        "height": 32,
+        "width": 32
+    },
+    "tileset.transparentColor": "#000000"
 }

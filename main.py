@@ -18,10 +18,13 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 TOTAL_LEVEL_WIDTH = 0
 TOTAL_LEVEL_HEIGHT = 0
+
 GAME_OFF = False
+ENEMIES_SPAWN_COORDINATES = []
 WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
@@ -36,6 +39,7 @@ MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png',
 FPS = 60
 
 PARTICLE_EVENT = pygame.USEREVENT + 1
+ENEMIES_EVENT = pygame.USEREVENT
 pygame.init() # Инициация PyGame, обязательная строчка 
 
 
@@ -78,33 +82,6 @@ class Fog:
         self.light_rect.center = self.camera.apply(self.player).center
         self.fog.blit(self.light_mask, self.light_rect)
         self.screen.blit(self.fog, (0, 0), special_flags=pygame.BLEND_MULT)
-
-
-class Button:
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.inactive_color = (13, 162, 58)
-        self.active_color = (23, 190, 58)
-
-    def draw(self, screen, x, y, message, action=None):
-        global GAME_OFF
-        mouse = pygame.mouse.get_pos()
-        click = pygame.mouse.get_pressed()
-
-        if x < mouse[0] < x + self.width and y < mouse[1] < y + self.height:
-            pygame.draw.rect(screen, self.active_color, (x, y, self.width, self.height))
-            if click[0]:
-                if action == quit:
-                    GAME_OFF = True
-                    return
-                else:
-                    pygame.time.delay(300)
-                    action()
-
-        else:
-            pygame.draw.rect(screen, self.inactive_color, (x, y, self.width, self.height))
-        text_print(screen, x, y, message)
 
 
 class Camera(object):
@@ -151,10 +128,43 @@ def draw_player_health(surf, x, y, pct):
     pygame.draw.rect(surf, col, fill_rect)
     pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
-def text_print(screen, x, y, message):
-    font_type = pygame.font.Font('fonts/20219.ttf', 50)
-    text = font_type.render(message, True, (0, 0, 0))
-    screen.blit(text, (x + 10, y + 10))
+
+class Button:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.inactive_color = (13, 162, 58)
+        self.active_color = (23, 190, 58)
+
+    def draw(self, screen, x, y, message, action=None):
+        global GAME_OFF
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+
+        if x < mouse[0] < x + self.width and y < mouse[1] < y + self.height:
+            pygame.draw.rect(screen, self.active_color, (x, y, self.width, self.height))
+            if click[0]:
+                if action == quit:
+                    GAME_OFF = True
+                    return
+                else:
+                    pygame.time.delay(300)
+                    action()
+
+        else:
+            pygame.draw.rect(screen, self.inactive_color, (x, y, self.width, self.height))
+        text_print(screen, x + 10, y + 10, message, 'fonts/20219.ttf', WHITE, 50)
+
+
+def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_align=False):
+    font = pygame.font.Font(font_type, font_size)
+    text_surface = font.render(message, True, fonts_color)
+    text_rect = text_surface.get_rect()
+    if center_align:
+        text_rect.center = (x, y)
+    else:
+        text_rect.topleft = (x, y)
+    screen.blit(text_surface, text_rect)
 
 
 def menu_show():
@@ -179,15 +189,16 @@ def menu_show():
 
 def game():
     left = right = up = down = False    # по умолчанию — стоим
-    night = True
+    night = False
     timer = pygame.time.Clock()
     
     screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
     pygame.display.set_caption("Tanks") # Пишем в шапку
     running = True
+    paused = False
 
     map_folder = 'maps'
-    Map = TiledMap('maps/level1.tmx')
+    Map = TiledMap('maps/level2.tmx')
     map_img = Map.make_map()
     map_rect = map_img.get_rect()
     TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT = Map.get_sizes()
@@ -203,10 +214,13 @@ def game():
         if tile_object.name == 'player':
             hero = Player(tile_object.x, tile_object.y)
         if tile_object.name == 'enemy':
-            Enemy(all_sprites, hero, enemies, tile_object.x, tile_object.y)
+            ENEMIES_SPAWN_COORDINATES.append((tile_object.x, tile_object.y))
+            Enemy(all_sprites, hero, enemies, (tile_object.x, tile_object.y))
         if tile_object.name == 'wall':
             Obstacle(walls, tile_object.x, tile_object.y, 
                      tile_object.width, tile_object.height)
+
+    pygame.time.set_timer(ENEMIES_EVENT,3000)
 
     all_sprites.add(hero)
       
@@ -222,11 +236,13 @@ def game():
     for img in MUZZLE_FLASHES:
         gun_flashes.append(pygame.image.load(path.join(IMG_FOLDER, img)).convert_alpha())
 
+    dim_screen = pygame.Surface(screen.get_size()).convert_alpha()
+    dim_screen.fill((0, 0, 0, 180))
+
     clock = pygame.time.Clock()
 
     while running: # Основной цикл программы
         dt = clock.tick(FPS) / 1000.0
-        pygame.display.set_caption("{:.2f}".format(clock.get_fps()))
 
         for event in pygame.event.get(): # Обрабатываем события
             if event.type == pygame.QUIT:
@@ -234,6 +250,9 @@ def game():
 
             elif event.type == KEYDOWN:
                 key_state = pygame.key.get_pressed()
+
+                if event.key == K_ESCAPE:
+                    paused = not paused
 
                 if event.key == K_SPACE:
                     Bullet(all_sprites, bullets, walls, hero.rect.center, hero, boom_flash)
@@ -254,6 +273,9 @@ def game():
             if event.type == PARTICLE_EVENT:
                 center_coords = camera.apply(hero).center
                 particle1.add_particles(left, right, up, down, center_coords)
+
+            if event.type == ENEMIES_EVENT:
+                Enemy(all_sprites, hero, enemies, random.choice(ENEMIES_SPAWN_COORDINATES))
                 
         if key_state[K_LEFT]:
             left = True
@@ -270,29 +292,41 @@ def game():
         elif key_state[K_DOWN]:
             down = True
             draw_particle = True
-                
+            
         screen.blit(map_img, camera.apply_rect(map_rect)) # Каждую итерацию необходимо всё перерисовывать 
 
-        camera.update(hero) # центризируем камеру относительно персонажа        
+        if not paused:
+            camera.update(hero) # центризируем камеру относительно персонажа        
+            hero.update(left, right, up, down, walls) 
+            bullets.update()
+            muzzle_flash.update()
+            boom_flash.update()
+            enemies.update(walls, bullets, all_sprites, boom_flash, hero)      
 
-        hero.update(left, right, up, down, walls) 
-        bullets.update()
-        muzzle_flash.update()
-        boom_flash.update()
-        enemies.update(walls, bullets, all_sprites, boom_flash, hero)      
+
+            if hero.health <= 0:
+                running = False
+            if draw_particle:
+                particle1.emit()
+            for e in all_sprites:
+                screen.blit(e.image, camera.apply(e)) # отображение всего
+            if night:
+                fog.render_fog()
+            draw_player_health(screen, 10, 10, hero.health / PLAYER_HEALTH)
+            text_print(screen, WIN_WIDTH - 50, 20, 'Score:', 'fonts/20219.ttf', WHITE, 40, True)
+            text_print(screen, WIN_WIDTH - len(str(hero.score)) * 20, 60, str(hero.score), 'fonts/20219.ttf', WHITE, 70, True)
+            text_print(screen, WIN_WIDTH - 10, WIN_HEIGHT - 10, str(int(clock.get_fps())), 'fonts/20219.ttf', BLACK, 15, True)
 
 
-        if hero.health <= 0:
-            running = False
-        if draw_particle:
-            particle1.emit()
-        for e in all_sprites:
-            screen.blit(e.image, camera.apply(e)) # отображение всего
-        if night:
-            fog.render_fog()
-        draw_player_health(screen, 10, 10, hero.health / PLAYER_HEALTH)
+        else:
+            for e in all_sprites:
+                screen.blit(e.image, camera.apply(e)) # отображение всего
+            screen.blit(dim_screen, (0, 0))
+            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'Pause', 'fonts/20219.ttf', RED, 105, True)
+
         pygame.display.update()     # обновление и вывод всех изменений на экран
         
 
 if __name__ == "__main__":
     menu_show()
+    #game()
