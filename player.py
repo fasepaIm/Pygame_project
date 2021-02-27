@@ -9,54 +9,56 @@ from itertools import chain
 from random import randint, choice
 
 
-def collide_with_hero(self, xvel, yvel, walls, hero, all_sprites):
-    if sprite.collide_rect(self, hero):
+def collide_with_hero(self, xvel, yvel, walls, player, all_sprites):
+    if sprite.collide_rect(self, player):
         MuzzleFlash(all_sprites, self.boom_flash, kill_flashes, self.rect.center, True)
         pygame.mixer.Sound(path.join(sounds_folder, EXPLOSION_SOUND)).play()
+        pygame.mixer.Sound(path.join(sounds_folder, ENEMY_HIT_SOUND)).play()
         self.kill()
-        hero.hit()
-        hero.health -= ENEMY_DAMAGE
+        player.hit()
+        player.health -= ENEMY_DAMAGE
         if self.xvel > 0:                      # если движется вправо
             xvel = ENEMY_KICK
-            hero.rect.x += xvel
-            collide_with_walls(hero, xvel, 0, walls)
-            hero.xvel = 0
+            player.rect.x += xvel
+            collide_with_objects(player, xvel, 0, walls)
+            player.xvel = 0
 
         elif self.xvel < 0:                      # если движется влево
             xvel = -ENEMY_KICK
-            hero.rect.x += xvel
-            collide_with_walls(hero, xvel, 0, walls)
-            hero.xvel = 0
+            player.rect.x += xvel
+            collide_with_objects(player, xvel, 0, walls)
+            player.xvel = 0
 
         elif self.yvel > 0:                      # если падает вниз
             yvel = ENEMY_KICK
-            hero.rect.y += yvel
-            collide_with_walls(hero, 0, yvel, walls)
-            hero.yvel = 0                 # и энергия падения пропадает
+            player.rect.y += yvel
+            collide_with_objects(player, 0, yvel, walls)
+            player.yvel = 0                 # и энергия падения пропадает
 
         elif self.yvel < 0:                      # если движется вверх
             yvel = -ENEMY_KICK
-            hero.rect.y += yvel
-            collide_with_walls(hero, 0, yvel, walls)
-            hero.yvel = 0                 # и энергия прыжка пропадает
+            player.rect.y += yvel
+            collide_with_objects(player, 0, yvel, walls)
+            player.yvel = 0                 # и энергия прыжка пропадает
 
 
-def collide_with_walls(self, xvel, yvel, walls, enemy=False, hero=False):
-    for p in walls:
+def collide_with_objects(self, xvel, yvel, objects):
+    for p in objects:
         if sprite.collide_rect(self, p): # если есть пересечение платформы с игроком
-            if xvel > 0:                      # если движется вправо
-                self.rect.right = p.rect.left # то не движется вправо
+            if self.rect.center != p.rect.center:
+                if xvel > 0:                      # если движется вправо
+                    self.rect.right = p.rect.left # то не движется вправо
 
-            if xvel < 0:                      # если движется влево
-                self.rect.left = p.rect.right # то не движется влево
+                if xvel < 0:                      # если движется влево
+                    self.rect.left = p.rect.right # то не движется влево
 
-            if yvel > 0:                      # если падает вниз
-                self.rect.bottom = p.rect.top # то не падает вниз 
-                self.yvel = 0                 # и энергия падения пропадает
+                if yvel > 0:                      # если падает вниз
+                    self.rect.bottom = p.rect.top # то не падает вниз 
+                    self.yvel = 0                 # и энергия падения пропадает
 
-            if yvel < 0:                      # если движется вверх
-                self.rect.top = p.rect.bottom # то не движется вверх
-                self.yvel = 0                 # и энергия прыжка пропадает
+                if yvel < 0:                      # если движется вверх
+                    self.rect.top = p.rect.bottom # то не движется вверх
+                    self.yvel = 0                 # и энергия прыжка пропадает
 
 
 class Player(sprite.Sprite):
@@ -110,9 +112,9 @@ class Player(sprite.Sprite):
                 self.damaged = False
 
         self.rect.y += self.yvel # переносим свои положение на yvel
-        collide_with_walls(self, 0, self.yvel, walls)
+        collide_with_objects(self, 0, self.yvel, walls)
         self.rect.x += self.xvel # переносим свои положение на xvel
-        collide_with_walls(self, self.xvel, 0, walls)
+        collide_with_objects(self, self.xvel, 0, walls)
         self.xvel = 0
         self.yvel = 0
 
@@ -125,51 +127,53 @@ class Player(sprite.Sprite):
 
 
 class Enemy(sprite.Sprite):
-    def __init__(self, all_sprites, hero, enemies, coords):
+    def __init__(self, all_sprites, player, enemies, coords):
         self.groups = all_sprites, enemies
         sprite.Sprite.__init__(self, self.groups)
         x, y = coords
         self.x = x
         self.y = y
-        self.hero = hero
+        self.player = player
         self.image = image.load(ENEMY_TANK_IMAGE)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         
-    def update(self, walls, bullets, all_sprites, boom_flash, hero):
+    def update(self, walls, bullets, all_sprites, boom_flash, player, enemies):
         self.all_sprites = all_sprites
         self.boom_flash = boom_flash
         self.xvel = 0
         self.yvel = 0
-        if self.hero.pos[0] > self.rect.x:
+        if self.player.pos[0] > self.rect.x:
             self.xvel += ENEMY_SPEED
             self.image = image.load(ENEMY_TANK_IMAGE)
 
-        elif self.hero.pos[0] < self.rect.x:
+        elif self.player.pos[0] < self.rect.x:
             self.xvel -= ENEMY_SPEED
             self.image = pygame.transform.rotate(image.load(ENEMY_TANK_IMAGE), 180)
 
-        if self.hero.pos[1] > self.rect.y:
+        if self.player.pos[1] > self.rect.y:
             self.yvel += ENEMY_SPEED
             self.image = pygame.transform.rotate(image.load(ENEMY_TANK_IMAGE), 270)
 
-        elif self.hero.pos[1] < self.rect.y:
+        elif self.player.pos[1] < self.rect.y:
             self.yvel -= ENEMY_SPEED
             self.image = pygame.transform.rotate(image.load(ENEMY_TANK_IMAGE), 90)
 
         self.collide_with_bullets(bullets)
         self.rect.y += self.yvel
-        collide_with_hero(self, 0, self.yvel, walls, hero, all_sprites)
-        collide_with_walls(self, 0, self.yvel, walls)
+        collide_with_hero(self, 0, self.yvel, walls, player, all_sprites)
+        collide_with_objects(self, 0, self.yvel, enemies)
+        collide_with_objects(self, 0, self.yvel, walls)
         self.rect.x += self.xvel # переносим свои положение на xvel
-        collide_with_hero(self, 0, self.yvel, walls, hero, all_sprites)
-        collide_with_walls(self, self.xvel, 0, walls)
+        collide_with_hero(self, 0, self.yvel, walls, player, all_sprites)
+        collide_with_objects(self, self.xvel, 0, enemies)
+        collide_with_objects(self, self.xvel, 0, walls)
 
     def collide_with_bullets(self, bullets):
         for p in bullets:
             if sprite.collide_rect(self, p): # если есть пули с врагом
                 MuzzleFlash(self.all_sprites, self.boom_flash, kill_flashes, p.rect.center, True)
-                self.hero.score += POINT_PRICE
+                self.player.score += POINT_PRICE
                 pygame.mixer.Sound(path.join(sounds_folder, EXPLOSION_SOUND)).play()
                 p.kill()
                 self.kill()
@@ -193,10 +197,10 @@ class Bullet(pygame.sprite.Sprite):
 
         xvel = -(KICKBACK * self.bul_x)
         player.rect.x += xvel
-        collide_with_walls(player, xvel, 0, walls)
+        collide_with_objects(player, xvel, 0, walls)
         yvel = -(KICKBACK * self.bul_y)
         player.rect.y += yvel
-        collide_with_walls(player, 0, yvel, walls)
+        collide_with_objects(player, 0, yvel, walls)
 
         self.spawn_time = pygame.time.get_ticks()
 

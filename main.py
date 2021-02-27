@@ -16,6 +16,7 @@ from particles import *
 
 PARTICLE_EVENT = pygame.USEREVENT + 1
 ENEMIES_EVENT = pygame.USEREVENT
+AMMUNITION_EVENT = pygame.USEREVENT
 pygame.init() # Инициация PyGame, обязательная строчка
 
 
@@ -42,10 +43,10 @@ class Obstacle(pygame.sprite.Sprite):
 
 # класс для создания тумана/ночного освещения
 class Fog:
-    def __init__(self, screen, camera, hero):
+    def __init__(self, screen, camera, player):
         self.screen = screen
         self.camera = camera
-        self.player = hero
+        self.player = player
         self.fog = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
         self.fog.fill(NIGHT_COLOR)
         self.light_mask = pygame.image.load(path.join(images_folder, LIGHT_MASK)).convert_alpha()
@@ -171,8 +172,8 @@ def game_over(screen):
 
 
 def game():
+    global AMMUNITION
     left = right = up = down = False    # по умолчанию — стоим
-    night = True
     timer = pygame.time.Clock()
     
     screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
@@ -195,22 +196,23 @@ def game():
     
     for tile_object in Map.tmxdata.objects:
         if tile_object.name == 'player':
-            hero = Player(tile_object.x, tile_object.y)
+            player = Player(tile_object.x, tile_object.y)
         if tile_object.name == 'enemy':
             ENEMIES_SPAWN_COORDINATES.append((tile_object.x, tile_object.y))
-            Enemy(all_sprites, hero, enemies, (tile_object.x, tile_object.y))
+            Enemy(all_sprites, player, enemies, (tile_object.x, tile_object.y))
         if tile_object.name == 'wall':
             Obstacle(walls, tile_object.x, tile_object.y, 
                      tile_object.width, tile_object.height)
 
     pygame.time.set_timer(ENEMIES_EVENT,3000)
+    pygame.time.set_timer(AMMUNITION_EVENT,3000)
 
-    all_sprites.add(hero)
+    all_sprites.add(player)
       
     camera = Camera(camera_configure, TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT)
     key_state = pygame.key.get_pressed()
 
-    fog = Fog(screen, camera, hero)
+    fog = Fog(screen, camera, player)
     pygame.time.set_timer(PARTICLE_EVENT,70)
     particle1 = ParticlePrinciple(screen)
     draw_particle = False
@@ -230,7 +232,7 @@ def game():
     player_ride_sound.set_volume(0.5)
 
     pygame.mixer.music.play(loops=-1)
-    pygame.mixer.music.set_volume(0.05)
+    pygame.mixer.music.set_volume(MUSIC_VOLUME)
 
 
     while running: # Основной цикл программы
@@ -252,10 +254,12 @@ def game():
                     paused = not paused
 
                 if event.key == K_SPACE:
-                    Bullet(all_sprites, bullets, walls, hero.rect.center, hero, boom_flash)
-                    MuzzleFlash(all_sprites, muzzle_flash, gun_flashes, hero.rect.center)
-                    if not paused and not game_over:
-                        player_shot_sound.play()
+                    if AMMUNITION > 0:
+                        Bullet(all_sprites, bullets, walls, player.rect.center, player, boom_flash)
+                        MuzzleFlash(all_sprites, muzzle_flash, gun_flashes, player.rect.center)
+                        AMMUNITION -= 1
+                        if not paused and not game_over:
+                            player_shot_sound.play()
 
             elif event.type == KEYUP:
                 key_state = pygame.key.get_pressed()
@@ -270,11 +274,14 @@ def game():
                     down = False
 
             if event.type == PARTICLE_EVENT:
-                center_coords = camera.apply(hero).center
+                center_coords = camera.apply(player).center
                 particle1.add_particles(left, right, up, down, center_coords)
 
             if event.type == ENEMIES_EVENT and len(enemies) <= 5:
-                Enemy(all_sprites, hero, enemies, random.choice(ENEMIES_SPAWN_COORDINATES))
+                Enemy(all_sprites, player, enemies, random.choice(ENEMIES_SPAWN_COORDINATES))
+
+            if event.type == AMMUNITION_EVENT and AMMUNITION < 5:
+                AMMUNITION += 1
                 
         if key_state[K_LEFT]:
             left = True
@@ -298,31 +305,32 @@ def game():
         screen.blit(map_img, camera.apply_rect(map_rect)) # Каждую итерацию необходимо всё перерисовывать 
 
         if not paused and not game_over:
-            camera.update(hero) # центризируем камеру относительно персонажа        
-            hero.update(left, right, up, down, walls)
+            camera.update(player) # центризируем камеру относительно персонажа
+            player.update(left, right, up, down, walls)
             bullets.update()
             muzzle_flash.update()
             boom_flash.update()
-            enemies.update(walls, bullets, all_sprites, boom_flash, hero)      
+            enemies.update(walls, bullets, all_sprites, boom_flash, player, enemies)
 
-            if hero.health <= 0:
+            if player.health <= 0:
                 game_over = True
             if draw_particle:
                 particle1.emit()
             for e in all_sprites:
                 screen.blit(e.image, camera.apply(e)) # отображение всего
-            if night:
+            if NIGHT:
                 fog.render_fog()
-            draw_player_health(screen, 10, 10, hero.health / PLAYER_HEALTH)
+            draw_player_health(screen, 10, 10, player.health / PLAYER_HEALTH)
+            text_print(screen, 10, 30, f'Bullets: {AMMUNITION}', path.join(fonts_folder, '20219.ttf'), WHITE, 20)
             text_print(screen, WIN_WIDTH - 50, 20, 'Score:', path.join(fonts_folder, '20219.ttf'), WHITE, 40, True)
-            text_print(screen, WIN_WIDTH - len(str(hero.score)) * 20, 60, str(hero.score), path.join(fonts_folder, '20219.ttf'), WHITE, 70, True)
+            text_print(screen, WIN_WIDTH - len(str(player.score)) * 20, 60, str(player.score), path.join(fonts_folder, '20219.ttf'), WHITE, 70, True)
             text_print(screen, WIN_WIDTH - 10, WIN_HEIGHT - 10, str(int(clock.get_fps())), path.join(fonts_folder, '20219.ttf'), WHITE, 15, True)
-
+            
         elif not game_over:
             player_ride_sound.stop()
             for e in all_sprites:
                 screen.blit(e.image, camera.apply(e)) # отображение всего
-            if night:
+            if NIGHT:
                 fog.render_fog()
             screen.blit(dim_screen, (0, 0))
             text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'Pause', path.join(fonts_folder, '20219.ttf'), RED, 105, True)

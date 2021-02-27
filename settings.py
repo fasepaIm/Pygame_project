@@ -16,6 +16,7 @@ ENEMIES_SPAWN_COORDINATES = []
 WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
+NIGHT = False
 NIGHT_COLOR = (0, 0, 0)
 LIGHT_RADIUS = (500, 500)
 LIGHT_MASK = "light_350_med.png"
@@ -28,7 +29,9 @@ PLAYER_SHOT_SOUND = 'player_shot.wav'
 PLAYER_RIDE_SOUND = 'player_ride.wav'
 PLAYER_STAY_SOUND = 'player_stay.wav'
 LEVEL_START_SOUND = 'level_start.wav'
+ENEMY_HIT_SOUND = 'enemy_hit.wav'
 EXPLOSION_SOUND = 'explosion.wav'
+MUSIC_VOLUME = 0.05
 
 game_folder = path.dirname(__file__)
 map_folder = path.join(game_folder, 'maps')
@@ -49,6 +52,7 @@ game_folder = path.dirname(__file__)
 PLAYERS_TANK_IMAGE = path.join(images_folder, 'players_tank.png')
 DAMAGE_ALPHA = [i for i in range(0, 255, 55)]
 
+AMMUNITION = 5
 BULLET_SPEED = 6
 BULLET_LIFETIME = 1000
 
