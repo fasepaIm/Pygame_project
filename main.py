@@ -114,7 +114,7 @@ class Button:
         self.active_color = (23, 190, 58)
 
     def draw(self, screen, x, y, message, action=None):
-        global GAME_OFF
+        global GAME_OFF, SELECTED_MODE, NIGHT, LIGHT_MASK, ENEMY_SPEED, BACKGROUND_MUSIC, MUSIC_VOLUME
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
 
@@ -124,6 +124,24 @@ class Button:
                 if action == quit:
                     GAME_OFF = True
                     return
+                elif 'mode' in message:
+                    if 'NORMAL' in message:
+                        SELECTED_MODE = 'mode: NIGHT'
+                        NIGHT = True
+                    elif 'NIGHT' in message:
+                        SELECTED_MODE = 'mode: HARD'
+                        NIGHT = True
+                        LIGHT_MASK = "light_350_soft.png"
+                        BACKGROUND_MUSIC = 'first.ogg'
+                        MUSIC_VOLUME = 0.6
+                        ENEMY_SPEED = 10
+                    elif 'HARD' in message:
+                        SELECTED_MODE = 'mode: NORMAL'
+                        NIGHT = False
+                        LIGHT_MASK = "light_350_med.png"
+                        BACKGROUND_MUSIC = 'second.ogg'
+                        MUSIC_VOLUME = 0.05
+                        ENEMY_SPEED = 2
                 else:
                     pygame.mixer.Sound(path.join(sounds_folder, LEVEL_START_SOUND)).play()
                     pygame.time.delay(300)
@@ -131,7 +149,7 @@ class Button:
 
         else:
             pygame.draw.rect(screen, self.inactive_color, (x, y, self.width, self.height))
-        text_print(screen, x + 10, y + 10, message, path.join(fonts_folder, '20219.ttf'), WHITE, 50)
+        text_print(screen, WIN_WIDTH / 2, y + 35, message, path.join(fonts_folder, '20219.ttf'), WHITE, 50, True)
 
 
 def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_align=False):
@@ -146,19 +164,21 @@ def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_
 
 
 def menu_show():
-    global GAME_OFF
+    global GAME_OFF, SELECTED_MODE
     menu_background = pygame.image.load(path.join(images_folder, 'menu.jpg'))
     show = True
-    start_btn = Button(220, 70)
-    quit_btn = Button(120, 70)
+    start_btn = Button(300, 70)
+    mode_btn = Button(300, 70)
+    quit_btn = Button(300, 70)
     screen = pygame.display.set_mode(DISPLAY)
     while show: # Основной цикл программы
         for event in pygame.event.get(): # Обрабатываем события
             if event.type == pygame.QUIT:
                 show = False
             screen.blit(menu_background, (0, 0))
-            start_btn.draw(screen, 300, 300, 'Play game', game)
-            quit_btn.draw(screen, 350, 380, 'Quit', quit)
+            start_btn.draw(screen, 250, 300, 'Play game', game)
+            mode_btn.draw(screen, 250, 380, SELECTED_MODE)
+            quit_btn.draw(screen, 250, 460, 'Quit', quit)
             if GAME_OFF:
                 show = False
                 break
@@ -336,7 +356,7 @@ def game():
             text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'Pause', path.join(fonts_folder, '20219.ttf'), RED, 105, True)
             
         else:
-            if night:
+            if NIGHT:
                 fog.render_fog()
             screen.blit(dim_screen, (0, 0))
             text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'GAME OVER', path.join(fonts_folder, '20219.ttf'), RED, 105, True)
@@ -345,5 +365,5 @@ def game():
     pygame.mixer.music.stop()
 
 if __name__ == "__main__":
-    #menu_show()
-    game()
+    menu_show()
+    # game()

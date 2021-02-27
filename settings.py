@@ -17,6 +17,7 @@ WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
 NIGHT = False
+SELECTED_MODE = 'mode: NORMAL'
 NIGHT_COLOR = (0, 0, 0)
 LIGHT_RADIUS = (500, 500)
 LIGHT_MASK = "light_350_med.png"
