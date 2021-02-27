@@ -7,6 +7,7 @@ RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+DARK_GRAY = (20, 20, 20)
 
 TOTAL_LEVEL_WIDTH = 0
 TOTAL_LEVEL_HEIGHT = 0
@@ -16,6 +17,7 @@ ENEMIES_SPAWN_COORDINATES = []
 WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
+SHIFT = 0
 NIGHT = False
 SELECTED_MODE = 'mode: NORMAL'
 NIGHT_COLOR = (0, 0, 0)
