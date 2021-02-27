@@ -138,7 +138,7 @@ class Enemy(sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         
-    def update(self, walls, bullets, all_sprites, boom_flash, player, enemies):
+    def update(self, ENEMY_SPEED, walls, bullets, all_sprites, boom_flash, player, enemies):
         self.all_sprites = all_sprites
         self.boom_flash = boom_flash
         self.xvel = 0
@@ -232,7 +232,7 @@ class Bullet(pygame.sprite.Sprite):
 class MuzzleFlash(pygame.sprite.Sprite):
     def __init__(self, all_sprites, muzzle_flash, gun_flashes, pos, kill=False):
         for img in BOOM_FLASHES:
-            kill_flashes.append(pygame.image.load(path.join(game_folder, f'data/images/{img}')).convert_alpha())
+            kill_flashes.append(pygame.image.load(path.join(images_folder, img)).convert_alpha())
         self._layer = EFFECTS_LAYER
         self.groups = all_sprites, muzzle_flash
         pygame.sprite.Sprite.__init__(self, self.groups)

@@ -114,7 +114,7 @@ class Button:
         self.active_color = (23, 190, 58)
 
     def draw(self, screen, x, y, message, action=None):
-        global GAME_OFF, SELECTED_MODE, NIGHT, LIGHT_MASK, ENEMY_SPEED, BACKGROUND_MUSIC, MUSIC_VOLUME
+        global GAME_OFF, SELECTED_MODE, NIGHT, LIGHT_MASK, ENEMY_SPEED, BACKGROUND_MUSIC
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
 
@@ -133,14 +133,12 @@ class Button:
                         NIGHT = True
                         LIGHT_MASK = "light_350_soft.png"
                         BACKGROUND_MUSIC = 'first.ogg'
-                        MUSIC_VOLUME = 0.6
-                        ENEMY_SPEED = 10
+                        ENEMY_SPEED = 4
                     elif 'HARD' in message:
                         SELECTED_MODE = 'mode: NORMAL'
                         NIGHT = False
                         LIGHT_MASK = "light_350_med.png"
                         BACKGROUND_MUSIC = 'second.ogg'
-                        MUSIC_VOLUME = 0.05
                         ENEMY_SPEED = 2
                 else:
                     pygame.mixer.Sound(path.join(sounds_folder, LEVEL_START_SOUND)).play()
@@ -225,7 +223,7 @@ def game():
                      tile_object.width, tile_object.height)
 
     pygame.time.set_timer(ENEMIES_EVENT,3000)
-    pygame.time.set_timer(AMMUNITION_EVENT,3000)
+    pygame.time.set_timer(AMMUNITION_EVENT,2000)
 
     all_sprites.add(player)
       
@@ -330,7 +328,7 @@ def game():
             bullets.update()
             muzzle_flash.update()
             boom_flash.update()
-            enemies.update(walls, bullets, all_sprites, boom_flash, player, enemies)
+            enemies.update(ENEMY_SPEED, walls, bullets, all_sprites, boom_flash, player, enemies)
 
             if player.health <= 0:
                 game_over = True

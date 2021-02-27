@@ -36,10 +36,10 @@ MUSIC_VOLUME = 0.05
 
 game_folder = path.dirname(__file__)
 map_folder = path.join(game_folder, 'maps')
-music_folder = path.join(game_folder, 'data/music')
-sounds_folder = path.join(game_folder, 'data/sounds')
-images_folder = path.join(game_folder, 'data/images')
-fonts_folder = path.join(game_folder, 'data/fonts')
+music_folder = path.join(game_folder, 'assets/music')
+sounds_folder = path.join(game_folder, 'assets/sounds')
+images_folder = path.join(game_folder, 'assets/images')
+fonts_folder = path.join(game_folder, 'assets/fonts')
 
 FPS = 60
 
