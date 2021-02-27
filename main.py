@@ -9,38 +9,14 @@ import pytmx
 from os import path
 from pygame import *
 from player import *
+from settings import *
 from tiled_map import *
 from particles import *
 
 
-#Объявляем переменные
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
-TOTAL_LEVEL_WIDTH = 0
-TOTAL_LEVEL_HEIGHT = 0
-
-GAME_OFF = False
-ENEMIES_SPAWN_COORDINATES = []
-WIN_WIDTH = 800 #Ширина создаваемого окна
-WIN_HEIGHT = 640 # Высота
-DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
-NIGHT_COLOR = (20, 20, 20)
-LIGHT_RADIUS = (500, 500)
-IMG_FOLDER = 'data'
-LIGHT_MASK = "light_350_med.png"
-
-MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png',
-                  'whitePuff17.png', 'whitePuff18.png']
-
-FPS = 60
-
 PARTICLE_EVENT = pygame.USEREVENT + 1
 ENEMIES_EVENT = pygame.USEREVENT
-pygame.init() # Инициация PyGame, обязательная строчка 
+pygame.init() # Инициация PyGame, обязательная строчка
 
 
 def load_image(name, colorkey=None):
@@ -72,7 +48,7 @@ class Fog:
         self.player = hero
         self.fog = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
         self.fog.fill(NIGHT_COLOR)
-        self.light_mask = pygame.image.load(path.join('data', LIGHT_MASK)).convert_alpha()
+        self.light_mask = pygame.image.load(path.join(images_folder, LIGHT_MASK)).convert_alpha()
         self.light_mask = pygame.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
 
@@ -148,6 +124,7 @@ class Button:
                     GAME_OFF = True
                     return
                 else:
+                    pygame.mixer.Sound(path.join(sounds_folder, LEVEL_START_SOUND)).play()
                     pygame.time.delay(300)
                     action()
 
@@ -169,7 +146,7 @@ def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_
 
 def menu_show():
     global GAME_OFF
-    menu_background = pygame.image.load('data/menu.jpg')
+    menu_background = pygame.image.load(path.join(images_folder, 'menu.jpg'))
     show = True
     start_btn = Button(220, 70)
     quit_btn = Button(120, 70)
@@ -197,8 +174,7 @@ def game():
     running = True
     paused = False
 
-    map_folder = 'maps'
-    Map = TiledMap('maps/level2.tmx')
+    Map = TiledMap(path.join(map_folder, 'level2.tmx'))
     map_img = Map.make_map()
     map_rect = map_img.get_rect()
     TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT = Map.get_sizes()
@@ -234,21 +210,33 @@ def game():
 
     gun_flashes = []
     for img in MUZZLE_FLASHES:
-        gun_flashes.append(pygame.image.load(path.join(IMG_FOLDER, img)).convert_alpha())
+        gun_flashes.append(pygame.image.load(path.join('data/images', img)).convert_alpha())
 
     dim_screen = pygame.Surface(screen.get_size()).convert_alpha()
     dim_screen.fill((0, 0, 0, 180))
 
     clock = pygame.time.Clock()
 
+    pygame.mixer.music.load(path.join(music_folder, BACKGROUND_MUSIC))
+    player_shot_sound = pygame.mixer.Sound(path.join(sounds_folder, PLAYER_SHOT_SOUND))
+    player_ride_sound = pygame.mixer.Sound(path.join(sounds_folder, PLAYER_RIDE_SOUND))
+    player_ride_sound.set_volume(0.5)
+
+    pygame.mixer.music.play(loops=-1)
+    pygame.mixer.music.set_volume(0.05)
+
     while running: # Основной цикл программы
         dt = clock.tick(FPS) / 1000.0
-
+        
         for event in pygame.event.get(): # Обрабатываем события
             if event.type == pygame.QUIT:
                 running = False
 
             elif event.type == KEYDOWN:
+                if event.key in [K_RIGHT, K_LEFT, K_UP, K_DOWN]:
+                    player_ride_sound.stop()
+                    player_ride_sound.play(loops=-1)
+
                 key_state = pygame.key.get_pressed()
 
                 if event.key == K_ESCAPE:
@@ -257,6 +245,7 @@ def game():
                 if event.key == K_SPACE:
                     Bullet(all_sprites, bullets, walls, hero.rect.center, hero, boom_flash)
                     MuzzleFlash(all_sprites, muzzle_flash, gun_flashes, hero.rect.center)
+                    player_shot_sound.play()
 
             elif event.type == KEYUP:
                 key_state = pygame.key.get_pressed()
@@ -274,7 +263,7 @@ def game():
                 center_coords = camera.apply(hero).center
                 particle1.add_particles(left, right, up, down, center_coords)
 
-            if event.type == ENEMIES_EVENT:
+            if event.type == ENEMIES_EVENT and len(enemies) <= 5:
                 Enemy(all_sprites, hero, enemies, random.choice(ENEMIES_SPAWN_COORDINATES))
                 
         if key_state[K_LEFT]:
@@ -292,12 +281,15 @@ def game():
         elif key_state[K_DOWN]:
             down = True
             draw_particle = True
+
+        else:
+            player_ride_sound.stop()
             
         screen.blit(map_img, camera.apply_rect(map_rect)) # Каждую итерацию необходимо всё перерисовывать 
 
         if not paused:
             camera.update(hero) # центризируем камеру относительно персонажа        
-            hero.update(left, right, up, down, walls) 
+            hero.update(left, right, up, down, walls)
             bullets.update()
             muzzle_flash.update()
             boom_flash.update()
@@ -315,7 +307,7 @@ def game():
             draw_player_health(screen, 10, 10, hero.health / PLAYER_HEALTH)
             text_print(screen, WIN_WIDTH - 50, 20, 'Score:', 'fonts/20219.ttf', WHITE, 40, True)
             text_print(screen, WIN_WIDTH - len(str(hero.score)) * 20, 60, str(hero.score), 'fonts/20219.ttf', WHITE, 70, True)
-            text_print(screen, WIN_WIDTH - 10, WIN_HEIGHT - 10, str(int(clock.get_fps())), 'fonts/20219.ttf', BLACK, 15, True)
+            text_print(screen, WIN_WIDTH - 10, WIN_HEIGHT - 10, str(int(clock.get_fps())), 'fonts/20219.ttf', WHITE, 15, True)
 
 
         else:
@@ -325,8 +317,9 @@ def game():
             text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'Pause', 'fonts/20219.ttf', RED, 105, True)
 
         pygame.display.update()     # обновление и вывод всех изменений на экран
+    pygame.mixer.music.stop()
         
 
 if __name__ == "__main__":
-    menu_show()
-    #game()
+    #menu_show()
+    game()

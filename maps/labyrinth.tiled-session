@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "level1.tmx",
     "expandedProjectPaths": [
     ],
     "fileStates": {
@@ -22,11 +22,11 @@
             "scaleInDock": 1
         },
         "level2.tmx": {
-            "scale": 1,
-            "selectedLayer": 3,
+            "scale": 0.5,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 192.5,
-                "y": 189.5
+                "x": 105,
+                "y": 223
             }
         },
         "level2.tmx#d5c4ijw-b5d34078-ed18-4380-aeb7-bbdbda1fb6d7": {
@@ -51,9 +51,13 @@
     "map.lastUsedFormat": "tmx",
     "map.width": 35,
     "openFiles": [
+        "level1.tmx",
+        "level2.tmx"
     ],
     "project": "",
     "recentFiles": [
+        "level2.tmx",
+        "level1.tmx",
         "tiled1.tmx"
     ],
     "tileset.embedInMap": true,

@@ -3,52 +3,13 @@
 
 import pygame
 from pygame import *
+from settings import *
 from os import path
 from itertools import chain
 from random import randint, choice
 
-MOVE_SPEED = 1
-PLAYER_HEALTH = 100
-ENEMIES_KILLED = 0
 
-POINT_PRICE = 10
-
-PLAYER_IMAGE_RIGHT = 'tank/r1.png'
-PLAYER_IMAGE_LEFT = 'tank/l1.png'
-PLAYER_IMAGE_UP = 'tank/u1.png'
-PLAYER_IMAGE_DOWN = 'tank/d1.png'
-
-DAMAGE_ALPHA = [i for i in range(0, 255, 55)]
-
-BULLET_SPEED = 5
-BULLET_LIFETIME = 1000
-
-BULLET_X, BULLET_Y = 1, 0
-KICKBACK = 3
-
-BULLET_IMAGE_RIGHT = 'data/bullet/r.png'
-BULLET_IMAGE_LEFT = 'data/bullet/l.png'
-BULLET_IMAGE_UP = 'data/bullet/u.png'
-BULLET_IMAGE_DOWN = 'data/bullet/d.png'
-
-ENEMY_SPEED = 3
-ENEMY_KICK = 15
-ENEMY_DAMAGE = 20
-
-ENEMY_IMAGE_RIGHT = 'tank/r3.png'
-ENEMY_IMAGE_LEFT = 'tank/l3.png'
-ENEMY_IMAGE_UP = 'tank/u3.png'
-ENEMY_IMAGE_DOWN = 'tank/d3.png'
-
-FLASH_DURATION = 40
-KILL_FLASH_DURATION = 150
-EFFECTS_LAYER = 4
-
-BOOM_FLASHES = ['boom_flashes_1.png', 'boom_flashes_2.png',
-                'boom_flashes_3.png', 'boom_flashes_4.png']
-IMG_FOLDER = 'data'
-
-kill_flashes = []
+ kill_flashes = []
 
 
 def collide_with_hero(self, xvel, yvel, walls, hero, all_sprites):
@@ -103,8 +64,8 @@ def collide_with_walls(self, xvel, yvel, walls, enemy=False, hero=False):
 class Player(sprite.Sprite):
     def __init__(self, x, y):
         sprite.Sprite.__init__(self)
-        self.image = image.load(PLAYER_IMAGE_RIGHT)
-        self.last_image = PLAYER_IMAGE_RIGHT
+        self.image = image.load(PLAYERS_TANK_IMAGE)
+        self.last_image_rotation = 0
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x, y
         self.pos = (x, y)
@@ -118,34 +79,31 @@ class Player(sprite.Sprite):
     def update(self, left, right, up, down, walls):
         global BULLET_X, BULLET_Y, running
         self.pos = (self.rect.x, self.rect.y)
-
-        self.image = image.load(self.last_image)
+        self.image = pygame.transform.rotate(image.load(PLAYERS_TANK_IMAGE), self.last_image_rotation)
 
         if up:
             BULLET_X, BULLET_Y = 0, -1
             self.yvel = -MOVE_SPEED
-            self.image = image.load(PLAYER_IMAGE_UP)
-            self.last_image = PLAYER_IMAGE_UP
+            self.image = pygame.transform.rotate(image.load(PLAYERS_TANK_IMAGE), 90)
+            self.last_image_rotation = 90
 
         elif down:
             BULLET_X, BULLET_Y = 0, 1
             self.yvel = MOVE_SPEED
-            self.image = image.load(PLAYER_IMAGE_DOWN)
-            self.last_image = PLAYER_IMAGE_DOWN
+            self.image = pygame.transform.rotate(image.load(PLAYERS_TANK_IMAGE), 270)
+            self.last_image_rotation = 270
 
-                       
         elif left:
             BULLET_X, BULLET_Y = -1, 0
             self.xvel = -MOVE_SPEED # Лево = x- n
-            self.image = image.load(PLAYER_IMAGE_LEFT)
-            self.last_image = PLAYER_IMAGE_LEFT
+            self.image = pygame.transform.rotate(image.load(PLAYERS_TANK_IMAGE), 180)
+            self.last_image_rotation = 180
 
- 
         elif right:
             BULLET_X, BULLET_Y = 1, 0
             self.xvel = MOVE_SPEED # Право = x + n
-            self.image = image.load(PLAYER_IMAGE_RIGHT)
-            self.last_image = PLAYER_IMAGE_RIGHT
+            self.image = image.load(PLAYERS_TANK_IMAGE)
+            self.last_image_rotation = 0
 
         if self.damaged:
             try:
@@ -153,7 +111,7 @@ class Player(sprite.Sprite):
             except:
                 self.damaged = False
 
-        self.rect.y += self.yvel
+        self.rect.y += self.yvel # переносим свои положение на yvel
         collide_with_walls(self, 0, self.yvel, walls)
         self.rect.x += self.xvel # переносим свои положение на xvel
         collide_with_walls(self, self.xvel, 0, walls)
@@ -173,13 +131,15 @@ class Enemy(sprite.Sprite):
         self.groups = all_sprites, enemies
         sprite.Sprite.__init__(self, self.groups)
         x, y = coords
-        self.x = x # Начальная позиция Х, пригодится когда будем переигрывать уровень
-        self.y = y        #self.startX = x # Начальная позиция Х, пригодится когда будем переигрывать уровень
-        #self.startY = y
+        self.x = x
+        self.y = y
         self.hero = hero
-        self.image = image.load(ENEMY_IMAGE_UP)
+        self.image = image.load(ENEMY_TANK_IMAGE)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
+        game_folder = path.dirname(__file__)
+        sounds_folder = path.join(game_folder, 'data/sounds')
+        self.EXPLOSION_SOUND = player_hit_sound = pygame.mixer.Sound(path.join(sounds_folder, 'explosion.wav'))
         
     def update(self, walls, bullets, all_sprites, boom_flash, hero):
         self.all_sprites = all_sprites
@@ -188,19 +148,19 @@ class Enemy(sprite.Sprite):
         self.yvel = 0
         if self.hero.pos[0] > self.rect.x:
             self.xvel += ENEMY_SPEED
-            self.image = image.load(ENEMY_IMAGE_RIGHT)
+            self.image = image.load(ENEMY_TANK_IMAGE)
 
-        if self.hero.pos[0] < self.rect.x:
+        elif self.hero.pos[0] < self.rect.x:
             self.xvel -= ENEMY_SPEED
-            self.image = image.load(ENEMY_IMAGE_LEFT)
+            self.image = pygame.transform.rotate(image.load(ENEMY_TANK_IMAGE), 180)
 
         if self.hero.pos[1] > self.rect.y:
             self.yvel += ENEMY_SPEED
-            self.image = image.load(ENEMY_IMAGE_DOWN)
+            self.image = pygame.transform.rotate(image.load(ENEMY_TANK_IMAGE), 270)
 
-        if self.hero.pos[1] < self.rect.y:
+        elif self.hero.pos[1] < self.rect.y:
             self.yvel -= ENEMY_SPEED
-            self.image = image.load(ENEMY_IMAGE_UP)
+            self.image = pygame.transform.rotate(image.load(ENEMY_TANK_IMAGE), 90)
 
         self.collide_with_bullets(bullets)
         self.rect.y += self.yvel
@@ -215,6 +175,7 @@ class Enemy(sprite.Sprite):
             if sprite.collide_rect(self, p): # если есть пули с врагом
                 MuzzleFlash(self.all_sprites, self.boom_flash, kill_flashes, p.rect.center, True)
                 self.hero.score += POINT_PRICE
+                self.EXPLOSION_SOUND.play()
                 p.kill()
                 self.kill()
 
@@ -246,13 +207,13 @@ class Bullet(pygame.sprite.Sprite):
 
     def check_image(self):
         if self.bul_x > 0:
-            self.image = image.load(BULLET_IMAGE_RIGHT)
+            self.image = image.load(BULLET_IMAGE)
         elif self.bul_x < 0:
-            self.image = image.load(BULLET_IMAGE_LEFT)
+            self.image = pygame.transform.rotate(image.load(BULLET_IMAGE), 180)
         elif self.bul_y < 0:
-            self.image = image.load(BULLET_IMAGE_UP)
+            self.image = pygame.transform.rotate(image.load(BULLET_IMAGE), 90)
         elif self.bul_y > 0:
-            self.image = image.load(BULLET_IMAGE_DOWN)
+            self.image = pygame.transform.rotate(image.load(BULLET_IMAGE), 270)
         self.rect = self.image.get_rect()
 
 
@@ -261,7 +222,7 @@ class Bullet(pygame.sprite.Sprite):
         self.pos[0] += self.vel * self.bul_x
         self.pos[1] += self.vel * self.bul_y
         self.rect.center = self.pos
-        if pygame.sprite.spritecollideany(self, self.walls):
+        if sprite.spritecollideany(self, self.walls):
             MuzzleFlash(self.all_sprites, self.boom_flash, kill_flashes, self.rect.center)
             self.kill()
         if pygame.time.get_ticks() - self.spawn_time > BULLET_LIFETIME:
@@ -271,7 +232,7 @@ class Bullet(pygame.sprite.Sprite):
 class MuzzleFlash(pygame.sprite.Sprite):
     def __init__(self, all_sprites, muzzle_flash, gun_flashes, pos, kill=False):
         for img in BOOM_FLASHES:
-            kill_flashes.append(pygame.image.load(path.join(IMG_FOLDER, img)).convert_alpha())
+            kill_flashes.append(pygame.image.load(path.join(game_folder, f'data/images/{img}')).convert_alpha())
         self._layer = EFFECTS_LAYER
         self.groups = all_sprites, muzzle_flash
         pygame.sprite.Sprite.__init__(self, self.groups)
