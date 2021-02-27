@@ -9,12 +9,10 @@ from itertools import chain
 from random import randint, choice
 
 
- kill_flashes = []
-
-
 def collide_with_hero(self, xvel, yvel, walls, hero, all_sprites):
     if sprite.collide_rect(self, hero):
         MuzzleFlash(all_sprites, self.boom_flash, kill_flashes, self.rect.center, True)
+        pygame.mixer.Sound(path.join(sounds_folder, EXPLOSION_SOUND)).play()
         self.kill()
         hero.hit()
         hero.health -= ENEMY_DAMAGE
@@ -137,9 +135,6 @@ class Enemy(sprite.Sprite):
         self.image = image.load(ENEMY_TANK_IMAGE)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        game_folder = path.dirname(__file__)
-        sounds_folder = path.join(game_folder, 'data/sounds')
-        self.EXPLOSION_SOUND = player_hit_sound = pygame.mixer.Sound(path.join(sounds_folder, 'explosion.wav'))
         
     def update(self, walls, bullets, all_sprites, boom_flash, hero):
         self.all_sprites = all_sprites
@@ -175,7 +170,7 @@ class Enemy(sprite.Sprite):
             if sprite.collide_rect(self, p): # если есть пули с врагом
                 MuzzleFlash(self.all_sprites, self.boom_flash, kill_flashes, p.rect.center, True)
                 self.hero.score += POINT_PRICE
-                self.EXPLOSION_SOUND.play()
+                pygame.mixer.Sound(path.join(sounds_folder, EXPLOSION_SOUND)).play()
                 p.kill()
                 self.kill()
 
@@ -224,6 +219,7 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.center = self.pos
         if sprite.spritecollideany(self, self.walls):
             MuzzleFlash(self.all_sprites, self.boom_flash, kill_flashes, self.rect.center)
+            pygame.mixer.Sound(path.join(sounds_folder, EXPLOSION_SOUND)).play()
             self.kill()
         if pygame.time.get_ticks() - self.spawn_time > BULLET_LIFETIME:
             self.kill()

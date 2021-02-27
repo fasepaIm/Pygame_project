@@ -130,7 +130,7 @@ class Button:
 
         else:
             pygame.draw.rect(screen, self.inactive_color, (x, y, self.width, self.height))
-        text_print(screen, x + 10, y + 10, message, 'fonts/20219.ttf', WHITE, 50)
+        text_print(screen, x + 10, y + 10, message, path.join(fonts_folder, '20219.ttf'), WHITE, 50)
 
 
 def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_align=False):
@@ -162,16 +162,23 @@ def menu_show():
                 show = False
                 break
             pygame.display.update()
+            
+def game_over(screen):
+    dim_screen = pygame.Surface(screen.get_size()).convert_alpha()
+    dim_screen.fill((0, 0, 0, 180))
+    screen.blit(dim_screen, (0, 0))
+    text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'GAME OVER', path.join(fonts_folder, '20219.ttf'), RED, 105, True)
 
 
 def game():
     left = right = up = down = False    # по умолчанию — стоим
-    night = False
+    night = True
     timer = pygame.time.Clock()
     
     screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
     pygame.display.set_caption("Tanks") # Пишем в шапку
     running = True
+    game_over = False
     paused = False
 
     Map = TiledMap(path.join(map_folder, 'level2.tmx'))
@@ -210,7 +217,7 @@ def game():
 
     gun_flashes = []
     for img in MUZZLE_FLASHES:
-        gun_flashes.append(pygame.image.load(path.join('data/images', img)).convert_alpha())
+        gun_flashes.append(pygame.image.load(path.join(images_folder, img)).convert_alpha())
 
     dim_screen = pygame.Surface(screen.get_size()).convert_alpha()
     dim_screen.fill((0, 0, 0, 180))
@@ -225,6 +232,7 @@ def game():
     pygame.mixer.music.play(loops=-1)
     pygame.mixer.music.set_volume(0.05)
 
+
     while running: # Основной цикл программы
         dt = clock.tick(FPS) / 1000.0
         
@@ -234,8 +242,9 @@ def game():
 
             elif event.type == KEYDOWN:
                 if event.key in [K_RIGHT, K_LEFT, K_UP, K_DOWN]:
-                    player_ride_sound.stop()
-                    player_ride_sound.play(loops=-1)
+                    if not paused and not game_over:
+                        player_ride_sound.stop()
+                        player_ride_sound.play(loops=-1)
 
                 key_state = pygame.key.get_pressed()
 
@@ -245,7 +254,8 @@ def game():
                 if event.key == K_SPACE:
                     Bullet(all_sprites, bullets, walls, hero.rect.center, hero, boom_flash)
                     MuzzleFlash(all_sprites, muzzle_flash, gun_flashes, hero.rect.center)
-                    player_shot_sound.play()
+                    if not paused and not game_over:
+                        player_shot_sound.play()
 
             elif event.type == KEYUP:
                 key_state = pygame.key.get_pressed()
@@ -287,7 +297,7 @@ def game():
             
         screen.blit(map_img, camera.apply_rect(map_rect)) # Каждую итерацию необходимо всё перерисовывать 
 
-        if not paused:
+        if not paused and not game_over:
             camera.update(hero) # центризируем камеру относительно персонажа        
             hero.update(left, right, up, down, walls)
             bullets.update()
@@ -295,9 +305,8 @@ def game():
             boom_flash.update()
             enemies.update(walls, bullets, all_sprites, boom_flash, hero)      
 
-
             if hero.health <= 0:
-                running = False
+                game_over = True
             if draw_particle:
                 particle1.emit()
             for e in all_sprites:
@@ -305,20 +314,27 @@ def game():
             if night:
                 fog.render_fog()
             draw_player_health(screen, 10, 10, hero.health / PLAYER_HEALTH)
-            text_print(screen, WIN_WIDTH - 50, 20, 'Score:', 'fonts/20219.ttf', WHITE, 40, True)
-            text_print(screen, WIN_WIDTH - len(str(hero.score)) * 20, 60, str(hero.score), 'fonts/20219.ttf', WHITE, 70, True)
-            text_print(screen, WIN_WIDTH - 10, WIN_HEIGHT - 10, str(int(clock.get_fps())), 'fonts/20219.ttf', WHITE, 15, True)
+            text_print(screen, WIN_WIDTH - 50, 20, 'Score:', path.join(fonts_folder, '20219.ttf'), WHITE, 40, True)
+            text_print(screen, WIN_WIDTH - len(str(hero.score)) * 20, 60, str(hero.score), path.join(fonts_folder, '20219.ttf'), WHITE, 70, True)
+            text_print(screen, WIN_WIDTH - 10, WIN_HEIGHT - 10, str(int(clock.get_fps())), path.join(fonts_folder, '20219.ttf'), WHITE, 15, True)
 
-
-        else:
+        elif not game_over:
+            player_ride_sound.stop()
             for e in all_sprites:
                 screen.blit(e.image, camera.apply(e)) # отображение всего
+            if night:
+                fog.render_fog()
             screen.blit(dim_screen, (0, 0))
-            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'Pause', 'fonts/20219.ttf', RED, 105, True)
-
+            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'Pause', path.join(fonts_folder, '20219.ttf'), RED, 105, True)
+            
+        else:
+            if night:
+                fog.render_fog()
+            screen.blit(dim_screen, (0, 0))
+            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'GAME OVER', path.join(fonts_folder, '20219.ttf'), RED, 105, True)
+            
         pygame.display.update()     # обновление и вывод всех изменений на экран
     pygame.mixer.music.stop()
-        
 
 if __name__ == "__main__":
     #menu_show()

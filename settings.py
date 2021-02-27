@@ -16,9 +16,8 @@ ENEMIES_SPAWN_COORDINATES = []
 WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
-NIGHT_COLOR = (20, 20, 20)
+NIGHT_COLOR = (0, 0, 0)
 LIGHT_RADIUS = (500, 500)
-IMG_FOLDER = 'data'
 LIGHT_MASK = "light_350_med.png"
 
 MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png',
@@ -28,14 +27,15 @@ BACKGROUND_MUSIC = 'second.ogg'
 PLAYER_SHOT_SOUND = 'player_shot.wav'
 PLAYER_RIDE_SOUND = 'player_ride.wav'
 PLAYER_STAY_SOUND = 'player_stay.wav'
-ENEMY_HIT_SOUND = ''
 LEVEL_START_SOUND = 'level_start.wav'
+EXPLOSION_SOUND = 'explosion.wav'
 
 game_folder = path.dirname(__file__)
 map_folder = path.join(game_folder, 'maps')
 music_folder = path.join(game_folder, 'data/music')
 sounds_folder = path.join(game_folder, 'data/sounds')
 images_folder = path.join(game_folder, 'data/images')
+fonts_folder = path.join(game_folder, 'data/fonts')
 
 FPS = 60
 
@@ -69,3 +69,4 @@ EFFECTS_LAYER = 4
 
 BOOM_FLASHES = ['boom_flashes_1.png', 'boom_flashes_2.png',
                 'boom_flashes_3.png', 'boom_flashes_4.png']
+kill_flashes = []
