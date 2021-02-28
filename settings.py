@@ -1,7 +1,10 @@
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Импортируем библиотеки
 from os import path
 
-
-#Объявляем переменные
+#Объявляем переменные цветов
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
@@ -9,35 +12,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 DARK_GRAY = (20, 20, 20)
 
-TOTAL_LEVEL_WIDTH = 0
-TOTAL_LEVEL_HEIGHT = 0
-
-GAME_OFF = False
-ENEMIES_SPAWN_COORDINATES = []
-WIN_WIDTH = 800 #Ширина создаваемого окна
-WIN_HEIGHT = 640 # Высота
-DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
-SHIFT = 0
-NIGHT = False
-SELECTED_MODE = 'mode: NORMAL'
-NIGHT_COLOR = (0, 0, 0)
-LIGHT_RADIUS = (500, 500)
-LIGHT_MASK = "light_350_med.png"
-
-MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png',
-                  'whitePuff17.png', 'whitePuff18.png']
-
-BACKGROUND_MUSIC = 'third.ogg'
-PLAYER_SHOT_SOUND = 'player_shot.wav'
-PLAYER_RIDE_SOUND = 'player_ride.wav'
-PLAYER_STAY_SOUND = 'player_stay.wav'
-LEVEL_START_SOUND = 'level_start.wav'
-ENEMY_HIT_SOUND = 'enemy_hit.wav'
-ENEMY_RIDE_SOUND = 'enemy_ride.wav'
-EXPLOSION_SOUND = 'explosion.wav'
-RICARDO_SOUND = 'ricardo.wav'
-MUSIC_VOLUME = 0.05
-
+# пути к папкам игры
 game_folder = path.dirname(__file__)
 map_folder = path.join(game_folder, 'maps')
 music_folder = path.join(game_folder, 'assets/music')
@@ -45,39 +20,66 @@ sounds_folder = path.join(game_folder, 'assets/sounds')
 images_folder = path.join(game_folder, 'assets/images')
 fonts_folder = path.join(game_folder, 'assets/fonts')
 
-FPS = 60
+# основные параметры игры
+WIN_WIDTH = 800 #Ширина создаваемого окна
+WIN_HEIGHT = 640 # Высота
+DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
+TOTAL_LEVEL_WIDTH = 0 # полная ширина уровня
+TOTAL_LEVEL_HEIGHT = 0 # полная высота уровня
+FPS = 60 # количество кадров в секунду
+NAME = '' # имя игрока по умолчанию
+ENEMIES_SPAWN_COORDINATES = [] # координаты возрождения врагов
+NIGHT = False # ночь
+SELECTED_MODE = 'mode: NORMAL' # выбранный режим игры
+BACKGROUND_MUSIC = 'third.ogg' # фоновая музыка
+MUSIC_VOLUME = 0.05 # громкось музыки
 
-MOVE_SPEED = 1
-PLAYER_HEALTH = 100
-ENEMIES_KILLED = 0
+# параметры ночного режима
+NIGHT_COLOR = (0, 0, 0) # ночная заливка
+LIGHT_RADIUS = (500, 500) # радиус света
+LIGHT_MASK = "light_350_med.png" # маска света
 
-POINT_PRICE = 10
+# параметры игрока
+MOVE_SPEED = 1 # скорость игрока
+PLAYER_HEALTH = 100 # здоровье игрока
+ENEMIES_KILLED = 0 # убито врагов
+POINT_PRICE = 10 # цена очка
+DAMAGE_ALPHA = [i for i in range(0, 255, 55)] # эффект урона
+PLAYERS_TANK_IMAGE = path.join(images_folder, 'players_tank.png') # изобрадение игрока
+PLAYER_SHOT_SOUND = 'player_shot.wav' # звук выстрела
+PLAYER_RIDE_SOUND = 'player_ride.wav' # звук передвижения
+LEVEL_START_SOUND = 'level_start.wav' # звук начала уровня
 
-game_folder = path.dirname(__file__)
-PLAYERS_TANK_IMAGE = path.join(images_folder, 'players_tank.png')
-DAMAGE_ALPHA = [i for i in range(0, 255, 55)]
+# параметры врагов
+ENEMY_SPEED = 2 # скорость врагов
+ENEMY_KICK = 15 # отдача врагов
+ENEMY_DAMAGE = 20 # урон врагов
+ENEMY_TANK_IMAGE = path.join(images_folder, 'enemies_tank.png') # изображение врагов
+ENEMY_HIT_SOUND = 'enemy_hit.wav' # звук ударв врагов
 
-AMMUNITION = 5
-BULLET_SPEED = 6
-BULLET_LIFETIME = 1000
+# параметры снарядов
+AMMUNITION = 5 # боезапас
+BULLET_SPEED = 6 # скорость снаряда
+BULLET_LIFETIME = 1000 # время жизни снаряда
+BULLET_X, BULLET_Y = 1, 0 # направление полёта
+KICKBACK = 3 # отдача от выстрела
+BULLET_IMAGE = path.join(images_folder, 'bullet.png') # изображение снаряда
 
-BULLET_X, BULLET_Y = 1, 0
-KICKBACK = 3
+# эффекты
+# изображения облаков стрельбы
+MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png',
+                  'whitePuff17.png', 'whitePuff18.png']
 
-BULLET_IMAGE = path.join(images_folder, 'bullet.png')
-
-ENEMY_SPEED = 2
-ENEMY_KICK = 15
-ENEMY_DAMAGE = 20
-
-ENEMY_TANK_IMAGE = path.join(images_folder, 'enemies_tank.png')
-
-FLASH_DURATION = 40
-KILL_FLASH_DURATION = 150
-EFFECTS_LAYER = 4
-
+# изображения взрывов
 BOOM_FLASHES = ['boom_flashes_1.png', 'boom_flashes_2.png',
                 'boom_flashes_3.png', 'boom_flashes_4.png']
+EXPLOSION_SOUND = 'explosion.wav' # звук взрыва
+FLASH_DURATION = 40 # длительность облака выстрела
+KILL_FLASH_DURATION = 150 # длительность взрыва
+EFFECTS_LAYER = 4
 kill_flashes = []
 
+# просто Рикардо
 RICARDO_IMAGE = path.join(images_folder, 'ricardo.png')
+RICARDO_SOUND = 'ricardo.wav'
+
