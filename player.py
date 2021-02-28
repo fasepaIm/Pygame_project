@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+from math import sqrt
 from pygame import *
 from settings import *
 from os import path
@@ -14,6 +15,7 @@ def collide_with_hero(self, xvel, yvel, walls, player, all_sprites):
         MuzzleFlash(all_sprites, self.boom_flash, kill_flashes, self.rect.center, True)
         pygame.mixer.Sound(path.join(sounds_folder, EXPLOSION_SOUND)).play()
         pygame.mixer.Sound(path.join(sounds_folder, ENEMY_HIT_SOUND)).play()
+        self.enemy_ride_sound.stop()
         self.kill()
         player.hit()
         player.health -= ENEMY_DAMAGE
@@ -139,12 +141,26 @@ class Enemy(sprite.Sprite):
         self.image = image.load(ENEMY_TANK_IMAGE)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        
+        self.enemy_ride_sound = pygame.mixer.Sound(path.join(sounds_folder, ENEMY_RIDE_SOUND))
+        self.enemy_ride_sound.set_volume(0)
+        self.enemy_ride_sound.play(loops=-1)
+
     def update(self, ENEMY_SPEED, walls, bullets, all_sprites, boom_flash, player, enemies):
         self.all_sprites = all_sprites
         self.boom_flash = boom_flash
         self.xvel = 0
         self.yvel = 0
+
+        distance = int(sqrt((player.rect.x - self.rect.x) ** 2 + (player.rect.y - self.rect.y) ** 2))
+        if 200 < distance < 300:
+            self.enemy_ride_sound.set_volume(0.2)
+        elif 100 < distance < 200:
+            self.enemy_ride_sound.set_volume(0.3)
+        elif distance < 100:
+            self.enemy_ride_sound.set_volume(0.4)
+        elif distance > 400:
+            self.enemy_ride_sound.set_volume(0)
+
         if self.player.pos[0] > self.rect.x:
             self.xvel += ENEMY_SPEED
             self.image = image.load(ENEMY_TANK_IMAGE)
@@ -172,7 +188,6 @@ class Enemy(sprite.Sprite):
         collide_with_objects(self, self.xvel, 0, walls)
 
     def collide_with_bullets(self, bullets):
-        global RICARDO_GO
         for p in bullets:
             if sprite.collide_rect(self, p): # если есть пули с врагом
                 MuzzleFlash(self.all_sprites, self.boom_flash, kill_flashes, p.rect.center, True)
@@ -181,6 +196,7 @@ class Enemy(sprite.Sprite):
                     self.player.special_score = 0
                     self.player.ricardo_go[0] = True
                 self.player.special_score += POINT_PRICE
+                self.enemy_ride_sound.stop()
                 pygame.mixer.Sound(path.join(sounds_folder, EXPLOSION_SOUND)).play()
                 p.kill()
                 self.kill()

@@ -33,6 +33,7 @@ PLAYER_RIDE_SOUND = 'player_ride.wav'
 PLAYER_STAY_SOUND = 'player_stay.wav'
 LEVEL_START_SOUND = 'level_start.wav'
 ENEMY_HIT_SOUND = 'enemy_hit.wav'
+ENEMY_RIDE_SOUND = 'enemy_ride.wav'
 EXPLOSION_SOUND = 'explosion.wav'
 RICARDO_SOUND = 'ricardo.wav'
 MUSIC_VOLUME = 0.05

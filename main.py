@@ -279,7 +279,7 @@ def game():
 
     while running: # Основной цикл программы
         dt = clock.tick(FPS) / 1000.0
-        
+
         for event in pygame.event.get(): # Обрабатываем события
             if event.type == pygame.QUIT:
                 running = False
@@ -386,7 +386,7 @@ def game():
             text_print(screen, WIN_WIDTH - 50, 20, 'Score:', path.join(fonts_folder, '20219.ttf'), WHITE, 40, True)
             text_print(screen, WIN_WIDTH - len(str(player.score)) * 20, 60, str(player.score), path.join(fonts_folder, '20219.ttf'), WHITE, 70, True)
             text_print(screen, WIN_WIDTH - 10, WIN_HEIGHT - 10, str(int(clock.get_fps())), path.join(fonts_folder, '20219.ttf'), WHITE, 15, True)
-            
+
         elif not game_over:
             player_ride_sound.stop()
             for e in all_sprites:
@@ -403,6 +403,7 @@ def game():
             draw_button(screen, menu_button, 'Main menu')
 
         else:
+            pygame.mixer.stop()
             if NIGHT:
                 fog.render_fog()
             screen.blit(dim_screen, (0, 0))
