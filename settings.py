@@ -27,7 +27,7 @@ LIGHT_MASK = "light_350_med.png"
 MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png',
                   'whitePuff17.png', 'whitePuff18.png']
 
-BACKGROUND_MUSIC = 'second.ogg'
+BACKGROUND_MUSIC = 'third.ogg'
 PLAYER_SHOT_SOUND = 'player_shot.wav'
 PLAYER_RIDE_SOUND = 'player_ride.wav'
 PLAYER_STAY_SOUND = 'player_stay.wav'

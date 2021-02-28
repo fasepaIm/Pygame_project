@@ -282,6 +282,7 @@ def game():
 
         for event in pygame.event.get(): # Обрабатываем события
             if event.type == pygame.QUIT:
+                pygame.mixer.stop()
                 running = False
 
             elif event.type == KEYDOWN:
