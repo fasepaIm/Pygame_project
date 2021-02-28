@@ -406,8 +406,11 @@ def game():
             if NIGHT:
                 fog.render_fog()
             screen.blit(dim_screen, (0, 0))
-            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 3, 'GAME OVER', path.join(fonts_folder, '20219.ttf'), RED, 105, True)
-            menu_button = pygame.Rect(WIN_WIDTH / 3, WIN_HEIGHT / 2 - 25, WIN_WIDTH / 3, 50)
+            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 3, 'GAME OVER',
+                       path.join(fonts_folder, '20219.ttf'), RED, 105, True)
+            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2 - 25, f'Your score: {player.score}',
+                       path.join(fonts_folder, '20219.ttf'), WHITE, 50, True)
+            menu_button = pygame.Rect(WIN_WIDTH / 3, WIN_HEIGHT / 2 + 25, WIN_WIDTH / 3, 50)
             draw_button(screen, menu_button, 'Main menu')
              
         pygame.display.update()     # обновление и вывод всех изменений на экран
