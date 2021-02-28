@@ -23,7 +23,7 @@ class ParticlePrinciple:
                 particle[0][1] += particle[2][0]
                 particle[0][0] += particle[2][1]
                 particle[1] -= 0.2
-                pygame.draw.circle(self.screen, pygame.Color(rgb(148, 154, 93)), particle[0], int(particle[1]))
+                pygame.draw.circle(self.screen, pygame.Color('Gray'), particle[0], int(particle[1]))
 
 
     def add_particles(self, left, right, up, down, center_coords):

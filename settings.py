@@ -34,6 +34,7 @@ PLAYER_STAY_SOUND = 'player_stay.wav'
 LEVEL_START_SOUND = 'level_start.wav'
 ENEMY_HIT_SOUND = 'enemy_hit.wav'
 EXPLOSION_SOUND = 'explosion.wav'
+RICARDO_SOUND = 'ricardo.wav'
 MUSIC_VOLUME = 0.05
 
 game_folder = path.dirname(__file__)
@@ -77,3 +78,5 @@ EFFECTS_LAYER = 4
 BOOM_FLASHES = ['boom_flashes_1.png', 'boom_flashes_2.png',
                 'boom_flashes_3.png', 'boom_flashes_4.png']
 kill_flashes = []
+
+RICARDO_IMAGE = path.join(images_folder, 'ricardo.png')

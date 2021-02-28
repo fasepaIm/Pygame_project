@@ -71,9 +71,11 @@ class Player(sprite.Sprite):
         self.pos = (x, y)
         self.health = PLAYER_HEALTH
         self.score = 0
+        self.special_score = 0
         self.damaged = False
         self.xvel = 0
         self.yvel = 0
+        self.ricardo_go = [True, False]
 
         
     def update(self, left, right, up, down, walls):
@@ -170,10 +172,15 @@ class Enemy(sprite.Sprite):
         collide_with_objects(self, self.xvel, 0, walls)
 
     def collide_with_bullets(self, bullets):
+        global RICARDO_GO
         for p in bullets:
             if sprite.collide_rect(self, p): # если есть пули с врагом
                 MuzzleFlash(self.all_sprites, self.boom_flash, kill_flashes, p.rect.center, True)
                 self.player.score += POINT_PRICE
+                if self.player.special_score == 500:
+                    self.player.special_score = 0
+                    self.player.ricardo_go[0] = True
+                self.player.special_score += POINT_PRICE
                 pygame.mixer.Sound(path.join(sounds_folder, EXPLOSION_SOUND)).play()
                 p.kill()
                 self.kill()

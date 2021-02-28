@@ -9,7 +9,7 @@ import pytmx
 from os import path
 from pygame import *
 from settings import *
-from buttons import *
+from input_box import *
 from player import *
 from tiled_map import *
 from particles import *
@@ -76,7 +76,6 @@ def camera_configure(camera, target_rect):
     l = max(-(camera.width-WIN_WIDTH), l)   # Не движемся дальше правой границы
     t = max(-(camera.height-WIN_HEIGHT), t) # Не движемся дальше нижней границы
     t = min(0, t)                           # Не движемся дальше верхней границы
-
     return Rect(l, t, w, h)
 
 
@@ -112,6 +111,7 @@ def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_
 def menu_show():
     global GAME_OFF, SELECTED_MODE
     menu_background = pygame.image.load(path.join(images_folder, 'menu.jpg'))
+    input_box = InputBox(WIN_WIDTH / 9, WIN_HEIGHT / 2 - 20, 100, 50)
     show = True
     screen = pygame.display.set_mode(DISPLAY)
     clock = pygame.time.Clock()
@@ -122,12 +122,57 @@ def menu_show():
                 show = False
             if event.type == MOUSEBUTTONDOWN:
                 draw_main_menu_button(screen, event)
+            input_box.handle_event(event)
             screen.blit(menu_background, (0, 0))
             draw_main_menu_button(screen)
+            input_box.draw(screen)
             if GAME_OFF:
                 show = False
                 break
             pygame.display.update()
+
+
+def draw_main_menu_button(screen, mouse_click=False):
+    global GAME_OFF, SELECTED_MODE, NIGHT, LIGHT_MASK, ENEMY_SPEED, BACKGROUND_MUSIC
+    play_button = pygame.Rect(WIN_WIDTH / 9, WIN_HEIGHT / 2 + 40, WIN_WIDTH / 3, 50)
+    draw_button(screen, play_button, 'Play game')
+
+    tutorial_button = pygame.Rect(WIN_WIDTH / 9, WIN_HEIGHT / 2 + 100, WIN_WIDTH / 3, 50)
+    draw_button(screen, tutorial_button, 'Tutorial')
+
+    mode_button = pygame.Rect(WIN_WIDTH / 9, WIN_HEIGHT / 2 + 160, WIN_WIDTH / 3, 50)
+    draw_button(screen, mode_button, SELECTED_MODE)
+
+    quit_button = pygame.Rect(WIN_WIDTH / 9, WIN_HEIGHT / 2 + 220, WIN_WIDTH / 3, 50)
+    draw_button(screen, quit_button, 'Quit')
+
+    if mouse_click:
+        if mouse_click.button == 1:
+            if button_intersection(play_button):
+                game()
+
+            if button_intersection(tutorial_button):
+                pass
+
+            if button_intersection(mode_button):
+                if 'NORMAL' in SELECTED_MODE:
+                    SELECTED_MODE = 'mode: NIGHT'
+                    NIGHT = True
+                elif 'NIGHT' in SELECTED_MODE:
+                    SELECTED_MODE = 'mode: HARD'
+                    NIGHT = True
+                    LIGHT_MASK = "light_350_soft.png"
+                    BACKGROUND_MUSIC = 'first.ogg'
+                    ENEMY_SPEED = 4
+                elif 'HARD' in SELECTED_MODE:
+                    SELECTED_MODE = 'mode: NORMAL'
+                    NIGHT = False
+                    LIGHT_MASK = "light_350_med.png"
+                    BACKGROUND_MUSIC = 'second.ogg'
+                    ENEMY_SPEED = 2
+
+            if button_intersection(quit_button):
+                exit()
 
 
 def button_intersection(button):
@@ -151,8 +196,24 @@ def game_over(screen):
     text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'GAME OVER', path.join(fonts_folder, '20219.ttf'), RED, 105, True)
 
 
+class Woo(pygame.sprite.Sprite):
+    def __init__(self, all_sprites, camera):
+        super().__init__(all_sprites)
+        self.image = image.load(RICARDO_IMAGE)
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = camera[0], camera[1]
+        self.go = True
+        self.camera = camera
+
+    def update(self, player):
+        if self.rect.right > self.camera[0] - 10 and self.go:
+            self.rect.x -= 10
+        else:
+            self.kill()
+
+
 def game():
-    global AMMUNITION
+    global AMMUNITION, TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT
     left = right = up = down = False    # по умолчанию — стоим
     timer = pygame.time.Clock()
     
@@ -214,6 +275,7 @@ def game():
     pygame.mixer.music.play(loops=-1)
     pygame.mixer.music.set_volume(MUSIC_VOLUME)
 
+    sas = False
 
     while running: # Основной цикл программы
         dt = clock.tick(FPS) / 1000.0
@@ -295,7 +357,7 @@ def game():
         else:
             player_ride_sound.stop()
             
-        screen.blit(map_img, camera.apply_rect(map_rect)) # Каждую итерацию необходимо всё перерисовывать 
+        screen.blit(map_img, camera.apply_rect(map_rect)) # Каждую итерацию необходимо всё перерисовывать
 
         if not paused and not game_over:
             camera.update(player) # центризируем камеру относительно персонажа
@@ -305,6 +367,12 @@ def game():
             boom_flash.update()
             enemies.update(ENEMY_SPEED, walls, bullets, all_sprites, boom_flash, player, enemies)
 
+            if player.special_score == 500 and player.ricardo_go[0]:
+                woo = Woo(all_sprites, center_coords)
+                pygame.mixer.Sound(path.join(sounds_folder, RICARDO_SOUND)).play()
+                player.ricardo_go = [False, True]
+            if player.ricardo_go[1]:
+                woo.update(player)
             if player.health <= 0:
                 game_over = True
             if draw_particle:
