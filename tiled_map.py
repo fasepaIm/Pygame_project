@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Импортируем библиотеки
 import pytmx
 import pygame
 
 
+# Класс загрузки .tmx карт
 class TiledMap:
     def __init__(self, filename):
         tm = pytmx.load_pygame(filename, pixelalpha=True)
@@ -24,6 +26,7 @@ class TiledMap:
                     if tile:
                         surface.blit(tile, (x * self.tmxdata.tilewidth, 
                                             y * self.tmxdata.tileheight))
+
     def make_map(self):
         temp_surface = pygame.Surface((self.width, self.height))
         self.render(temp_surface)

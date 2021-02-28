@@ -34,6 +34,21 @@ class Obstacle(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+# пасхалка
+class Woo(pygame.sprite.Sprite):
+    def __init__(self, all_sprites, camera):
+        super().__init__(all_sprites)
+        self.image = image.load(RICARDO_IMAGE)
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = camera[0], camera[1]
+        self.go = True
+        self.camera = camera
+
+    def update(self, player):
+        if self.rect.right > self.camera[0] - 10 and self.go:
+            self.rect.x -= 10
+        else:
+            self.kill()
 
 # класс для создания тумана/ночного освещения
 class Fog:
@@ -148,13 +163,13 @@ def menu_show():
             if event.type == MOUSEBUTTONDOWN: # если нажали на кнопку мыши
                 draw_main_menu_button(screen, event) # вызываем метод для отрисовки кнопок
             input_box.handle_event(event)
-            screen.blit(menu_background, (0, 0)) # добавляем фон
-            text_print(screen, WIN_WIDTH / 9, WIN_HEIGHT / 2 - 40, 'Enter a name and press ENTER:',
-                       path.join(fonts_folder, '20219.ttf'), WHITE, 20, False)
-            draw_main_menu_button(screen) # отрисовываем кнопки
-            input_box.draw(screen) # отрисовываем поле ввода
-            drawing_of_records(screen) # отрисовываем таблицу рекордов
-            pygame.display.update() # обновление и вывод всех изменений на экран
+        screen.blit(menu_background, (0, 0)) # добавляем фон
+        text_print(screen, WIN_WIDTH / 9, WIN_HEIGHT / 2 - 40, 'Enter a name and press ENTER:',
+                   path.join(fonts_folder, '20219.ttf'), WHITE, 20, False)
+        draw_main_menu_button(screen) # отрисовываем кнопки
+        input_box.draw(screen) # отрисовываем поле ввода
+        drawing_of_records(screen) # отрисовываем таблицу рекордов
+        pygame.display.update() # обновление и вывод всех изменений на экран
 
 
 # функция отрисовки кнопок в меню
@@ -226,22 +241,6 @@ def game_over(screen):
     screen.blit(dim_screen, (0, 0)) # отрисовывам слой
     text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'GAME OVER',
                path.join(fonts_folder, '20219.ttf'), RED, 105, True) # печатаем текст
-
-# пасхалка
-class Woo(pygame.sprite.Sprite):
-    def __init__(self, all_sprites, camera):
-        super().__init__(all_sprites)
-        self.image = image.load(RICARDO_IMAGE)
-        self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = camera[0], camera[1]
-        self.go = True
-        self.camera = camera
-
-    def update(self, player):
-        if self.rect.right > self.camera[0] - 10 and self.go:
-            self.rect.x -= 10
-        else:
-            self.kill()
 
 # основной класс игры
 def game():
