@@ -8,8 +8,9 @@ import random
 import pytmx
 from os import path
 from pygame import *
-from player import *
 from settings import *
+from buttons import *
+from player import *
 from tiled_map import *
 from particles import *
 
@@ -18,16 +19,6 @@ PARTICLE_EVENT = pygame.USEREVENT + 1
 ENEMIES_EVENT = pygame.USEREVENT
 AMMUNITION_EVENT = pygame.USEREVENT
 pygame.init() # Инициация PyGame, обязательная строчка
-
-
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    # если файл не существует, то выходим
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-    return image
 
 
 class Obstacle(pygame.sprite.Sprite):
@@ -88,6 +79,7 @@ def camera_configure(camera, target_rect):
 
     return Rect(l, t, w, h)
 
+
 def draw_player_health(surf, x, y, pct):
     if pct < 0:
         pct = 0
@@ -106,54 +98,6 @@ def draw_player_health(surf, x, y, pct):
     pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
 
-class Button:
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.inactive_color = (13, 162, 58)
-        self.active_color = (23, 190, 58)
-
-    def draw(self, screen, x, y, message, action=None):
-        global GAME_OFF, SELECTED_MODE, NIGHT, LIGHT_MASK, ENEMY_SPEED, BACKGROUND_MUSIC, SHIFT
-        mouse = pygame.mouse.get_pos()
-        click = pygame.mouse.get_pressed()
-
-        if x < mouse[0] < x + self.width and y < mouse[1] < y + self.height:
-            pygame.draw.rect(screen, self.active_color, (x, y, self.width, self.height))
-            if click[0]:
-                if action == quit:
-                    GAME_OFF = True
-                    return
-                elif 'mode' in message:
-                    if SHIFT == 0:
-                        if 'NORMAL' in message:
-                            SELECTED_MODE = 'mode: NIGHT'
-                            NIGHT = True
-                        elif 'NIGHT' in message:
-                            SELECTED_MODE = 'mode: HARD'
-                            NIGHT = True
-                            LIGHT_MASK = "light_350_soft.png"
-                            BACKGROUND_MUSIC = 'first.ogg'
-                            ENEMY_SPEED = 4
-                        elif 'HARD' in message:
-                            SELECTED_MODE = 'mode: NORMAL'
-                            NIGHT = False
-                            LIGHT_MASK = "light_350_med.png"
-                            BACKGROUND_MUSIC = 'second.ogg'
-                            ENEMY_SPEED = 2
-                        SHIFT = 1
-                else:
-                    pygame.mixer.Sound(path.join(sounds_folder, LEVEL_START_SOUND)).play()
-                    action()
-            else:
-                SHIFT = 0
-
-        else:
-            pygame.draw.rect(screen, self.inactive_color, (x, y, self.width, self.height))
-        text_print(screen, WIN_WIDTH / 2, y + 25, message, path.join(fonts_folder, '20219.ttf'), WHITE, 40, True)
-
-
-
 def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_align=False):
     font = pygame.font.Font(font_type, font_size)
     text_surface = font.render(message, True, fonts_color)
@@ -166,27 +110,40 @@ def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_
 
 
 def menu_show():
-    global GAME_OFF, SELECTED_MODE, SHIFT
+    global GAME_OFF, SELECTED_MODE
     menu_background = pygame.image.load(path.join(images_folder, 'menu.jpg'))
     show = True
-    start_btn = Button(300, 55)
-    mode_btn = Button(300, 55)
-    quit_btn = Button(300, 55)
     screen = pygame.display.set_mode(DISPLAY)
+    clock = pygame.time.Clock()
     while show: # Основной цикл программы
+        clock.tick(FPS)
         for event in pygame.event.get(): # Обрабатываем события
             if event.type == pygame.QUIT:
                 show = False
+            if event.type == MOUSEBUTTONDOWN:
+                draw_main_menu_button(screen, event)
             screen.blit(menu_background, (0, 0))
-            start_btn.draw(screen, 250, 220, 'Play game', game)
-            mode_btn.draw(screen, 250, 300, SELECTED_MODE)
-            quit_btn.draw(screen, 250, 380, 'Quit', quit)
+            draw_main_menu_button(screen)
             if GAME_OFF:
                 show = False
                 break
             pygame.display.update()
 
-            
+
+def button_intersection(button):
+    return abs(button.center[0] - mouse.get_pos()[0]) <= button.width / 2 and \
+               abs(button.center[1] - mouse.get_pos()[1]) <= button.height / 2
+
+
+def draw_button(screen, button, text):
+    button_color = BLACK
+    if button_intersection(button):
+        button_color = DARK_GRAY
+    pygame.draw.rect(screen, button_color, button)
+    text_print(screen, button.center[0], button.center[1], text,
+               path.join(fonts_folder, '20219.ttf'), WHITE, 40, True)
+
+
 def game_over(screen):
     dim_screen = pygame.Surface(screen.get_size()).convert_alpha()
     dim_screen.fill((0, 0, 0, 180))
@@ -298,18 +255,15 @@ def game():
 
             if event.type == MOUSEBUTTONDOWN and paused:
                 if event.button == 1:
-                    if abs(continue_button.center[0] - mouse.get_pos()[0]) <= continue_button.width / 2 and \
-                           abs(continue_button.center[1] - mouse.get_pos()[1]) <= continue_button.height / 2:
+                    if button_intersection(continue_button):
                         paused = False
 
-                    if abs(menu_button.center[0] - mouse.get_pos()[0]) <= menu_button.width / 2 and \
-                           abs(menu_button.center[1] - mouse.get_pos()[1]) <= menu_button.height / 2:
+                    if button_intersection(menu_button):
                         running = False
 
             if event.type == MOUSEBUTTONDOWN and game_over:
                 if event.button == 1:
-                    if abs(menu_button.center[0] - mouse.get_pos()[0]) <= menu_button.width / 2 and \
-                           abs(menu_button.center[1] - mouse.get_pos()[1]) <= menu_button.height / 2:
+                    if button_intersection(menu_button):
                         running = False
 
             if event.type == PARTICLE_EVENT:
@@ -374,38 +328,19 @@ def game():
             screen.blit(dim_screen, (0, 0))
             text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 5, 'Pause', path.join(fonts_folder, '20219.ttf'), RED, 105, True)
 
-            continue_button_color = BLACK
             continue_button = pygame.Rect(WIN_WIDTH / 3, WIN_HEIGHT / 3, WIN_WIDTH / 3, 50)
-            if abs(continue_button.center[0] - mouse.get_pos()[0]) <= continue_button.width / 2 and \
-                   abs(continue_button.center[1] - mouse.get_pos()[1]) <= continue_button.height / 2:
-                continue_button_color = DARK_GRAY
-            pygame.draw.rect(screen, continue_button_color, continue_button)
-            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 3 + 25, 'Continue',
-                       path.join(fonts_folder, '20219.ttf'), WHITE, 40, True)
+            draw_button(screen, continue_button, 'Continue')
 
-            menu_button_color = BLACK
             menu_button = pygame.Rect(WIN_WIDTH / 3, WIN_HEIGHT / 2 - 25, WIN_WIDTH / 3, 50)
-            if abs(menu_button.center[0] - mouse.get_pos()[0]) <= menu_button.width / 2 and \
-                   abs(menu_button.center[1] - mouse.get_pos()[1]) <= menu_button.height / 2:
-                menu_button_color = DARK_GRAY
-            pygame.draw.rect(screen, menu_button_color, menu_button)
-            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'Main menu',
-                       path.join(fonts_folder, '20219.ttf'), WHITE, 40, True)
-            
+            draw_button(screen, menu_button, 'Main menu')
+
         else:
             if NIGHT:
                 fog.render_fog()
             screen.blit(dim_screen, (0, 0))
             text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 3, 'GAME OVER', path.join(fonts_folder, '20219.ttf'), RED, 105, True)
-
-            menu_button_color = BLACK
             menu_button = pygame.Rect(WIN_WIDTH / 3, WIN_HEIGHT / 2 - 25, WIN_WIDTH / 3, 50)
-            if abs(menu_button.center[0] - mouse.get_pos()[0]) <= menu_button.width / 2 and \
-                   abs(menu_button.center[1] - mouse.get_pos()[1]) <= menu_button.height / 2:
-                menu_button_color = DARK_GRAY
-            pygame.draw.rect(screen, menu_button_color, menu_button)
-            text_print(screen, WIN_WIDTH / 2, WIN_HEIGHT / 2, 'Main menu',
-                       path.join(fonts_folder, '20219.ttf'), WHITE, 40, True)
+            draw_button(screen, menu_button, 'Main menu')
              
         pygame.display.update()     # обновление и вывод всех изменений на экран
     pygame.mixer.music.stop()
