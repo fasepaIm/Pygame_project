@@ -69,34 +69,6 @@ class Fog:
         self.fog.blit(self.light_mask, self.light_rect) # накадываем маску на слой
         self.screen.blit(self.fog, (0, 0), special_flags=pygame.BLEND_MULT) # отображем слой на экране
 
-# функция меню обучения
-def tutorial_show(screen):
-    loaded_images = []
-    for img in TUTORIAL_IMAGES:
-        loaded_images.append(pygame.image.load(path.join(images_folder, img)))
-    loaded_images = chain(loaded_images)
-    current_image = next(loaded_images)
-    show = True # переменная показа окна
-    pygame.display.set_caption('Tutorial Pytanks 2D') # Пишем в шапку
-    clock = pygame.time.Clock() # добавляем часы
-    while show: # Основной цикл программы
-        clock.tick(FPS) # ограничиваем частоту отрисовки кадров
-        for event in pygame.event.get(): # Обрабатываем события
-            if event.type == pygame.QUIT: # если выйти
-                show = False # цикл останавливается
-            elif event.type == KEYDOWN: # если нажали любую клавишу
-                try:
-                    image = next(loaded_images) # изображение меняется на следующее
-                except:
-                    show = False # цикл останавливается
-            elif event.type == MOUSEBUTTONDOWN: # если нажали на кнопку мыши
-                try:
-                    current_image = next(loaded_images) # изображение меняется на следующее
-                except:
-                    show = False # цикл останавливается
-        screen.blit(image, (0, 0)) # рисуем изображение
-        pygame.display.update() # обновление и вывод всех изменений на экран
-
 # класс камеры
 class Camera(object):
     def __init__(self, camera_func, width, height):
@@ -124,55 +96,6 @@ def camera_configure(camera, target_rect):
     t = min(0, t)                           # Не движемся дальше верхней границы
     return Rect(l, t, w, h)
 
-
-# функция отрисовки полоски здоровья игрока
-def draw_player_health(surf, x, y, pct):
-    if pct < 0: # если здоровье станет меньшн нуля
-        pct = 0 # то равно нулю
-    BAR_LENGTH = 100 # ширина полоски
-    BAR_HEIGHT = 20 # высота полоски
-    fill = pct * BAR_LENGTH # длина заливки
-    outline_rect = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT) # создаём контур
-    fill_rect = pygame.Rect(x, y, fill, BAR_HEIGHT) # создаём площадь для заливки
-    if pct > 0.6: # если здоровье больше 60%
-        col = GREEN # заливаем зелёным
-    elif pct > 0.3: # если здоровье больше 30%
-        col = YELLOW # заливаем жёлтым
-    else: # если меньше
-        col = RED # заливаем красным
-    pygame.draw.rect(surf, col, fill_rect) # отрисовываем полоску
-    pygame.draw.rect(surf, WHITE, outline_rect, 2) # отрисовываем контур
-
-
-# функция для отрисовки текста
-def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_align=False):
-    font = pygame.font.Font(font_type, font_size) # загружаем шрифт
-    text_surface = font.render(message, True, fonts_color) # применяем параметры к тексту
-    text_rect = text_surface.get_rect() # получаем размер занимаемого текста
-    if center_align: # если в аргументах передана центровка
-        text_rect.center = (x, y) # выравниваем по центру
-    else: # если нет
-        text_rect.topleft = (x, y) # выравниваем по верхней левой точке
-    screen.blit(text_surface, text_rect) # отрисовываем текст
-
-
-# функция для отрисовки таблицы рекордов
-def drawing_of_records(screen):
-    text_print(screen, 500, 320, 'Table of records:', 
-               path.join(fonts_folder, '20219.ttf'), WHITE, 30, False) # отрисовываем имя таблицы
-    # отрисовываем топ-5 рекордов
-    text_print(screen, 500, 360, f'{score_table(SELECTED_MODE)[0][0]}: {score_table(SELECTED_MODE)[0][1]}', path.join(fonts_folder, '20219.ttf'),
-               WHITE, 25, False)
-    text_print(screen, 500, 400, f'{score_table(SELECTED_MODE)[1][0]}: {score_table(SELECTED_MODE)[1][1]}',
-               path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
-    text_print(screen, 500, 440, f'{score_table(SELECTED_MODE)[2][0]}: {score_table(SELECTED_MODE)[2][1]}',
-               path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
-    text_print(screen, 500, 480, f'{score_table(SELECTED_MODE)[3][0]}: {score_table(SELECTED_MODE)[3][1]}',
-               path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
-    text_print(screen, 500, 520, f'{score_table(SELECTED_MODE)[4][0]}: {score_table(SELECTED_MODE)[4][1]}',
-               path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
-
-
 # функция основного меню
 def menu_show():
     global SELECTED_MODE
@@ -180,8 +103,10 @@ def menu_show():
     input_box = InputBox(WIN_WIDTH / 9, WIN_HEIGHT / 2 - 10, 265, 40) # добавляем поле ввода
     show = True # переменная показа окна
     screen = pygame.display.set_mode(DISPLAY) # создаём окно
-    clock = pygame.time.Clock() # добавляем часы
+    icon = pygame.image.load(path.join(images_folder, ICON))
+    pygame.display.set_icon(icon) # меняем иконку программы
     pygame.display.set_caption('Pytanks 2D') # Пишем в шапку
+    clock = pygame.time.Clock() # добавляем часы
     while show: # Основной цикл программы
         clock.tick(FPS) # ограничиваем частоту отрисовки кадров
         for event in pygame.event.get(): # Обрабатываем события
@@ -197,7 +122,6 @@ def menu_show():
         input_box.draw(screen) # отрисовываем поле ввода
         drawing_of_records(screen) # отрисовываем таблицу рекордов
         pygame.display.update() # обновление и вывод всех изменений на экран
-
 
 # функция отрисовки кнопок в меню
 def draw_main_menu_button(screen, mouse_click=False):
@@ -245,12 +169,83 @@ def draw_main_menu_button(screen, mouse_click=False):
             if button_intersection(quit_button): # если нажали на кнопку quit_button
                 exit() # закрываем игру
 
+# функция меню обучения
+def tutorial_show(screen):
+    loaded_images = []
+    for img in TUTORIAL_IMAGES:
+        loaded_images.append(pygame.image.load(path.join(images_folder, img)))
+    loaded_images = chain(loaded_images)
+    current_image = next(loaded_images)
+    show = True # переменная показа окна
+    pygame.display.set_caption('Tutorial Pytanks 2D') # Пишем в шапку
+    clock = pygame.time.Clock() # добавляем часы
+    while show: # Основной цикл программы
+        clock.tick(FPS) # ограничиваем частоту отрисовки кадров
+        for event in pygame.event.get(): # Обрабатываем события
+            if event.type == pygame.QUIT: # если выйти
+                show = False # цикл останавливается
+            elif event.type == KEYDOWN: # если нажали любую клавишу
+                try:
+                    current_image = next(loaded_images) # изображение меняется на следующее
+                except:
+                    show = False # цикл останавливается
+            elif event.type == MOUSEBUTTONDOWN: # если нажали на кнопку мыши
+                try:
+                    current_image = next(loaded_images) # изображение меняется на следующее
+                except:
+                    show = False # цикл останавливается
+        screen.blit(current_image, (0, 0)) # рисуем изображение
+        pygame.display.update() # обновление и вывод всех изменений на экран
+
+# функция отрисовки полоски здоровья игрока
+def draw_player_health(surf, x, y, pct):
+    if pct < 0: # если здоровье станет меньшн нуля
+        pct = 0 # то равно нулю
+    BAR_LENGTH = 100 # ширина полоски
+    BAR_HEIGHT = 20 # высота полоски
+    fill = pct * BAR_LENGTH # длина заливки
+    outline_rect = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT) # создаём контур
+    fill_rect = pygame.Rect(x, y, fill, BAR_HEIGHT) # создаём площадь для заливки
+    if pct > 0.6: # если здоровье больше 60%
+        col = GREEN # заливаем зелёным
+    elif pct > 0.3: # если здоровье больше 30%
+        col = YELLOW # заливаем жёлтым
+    else: # если меньше
+        col = RED # заливаем красным
+    pygame.draw.rect(surf, col, fill_rect) # отрисовываем полоску
+    pygame.draw.rect(surf, WHITE, outline_rect, 2) # отрисовываем контур
+
+# функция для отрисовки текста
+def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_align=False):
+    font = pygame.font.Font(font_type, font_size) # загружаем шрифт
+    text_surface = font.render(message, True, fonts_color) # применяем параметры к тексту
+    text_rect = text_surface.get_rect() # получаем размер занимаемого текста
+    if center_align: # если в аргументах передана центровка
+        text_rect.center = (x, y) # выравниваем по центру
+    else: # если нет
+        text_rect.topleft = (x, y) # выравниваем по верхней левой точке
+    screen.blit(text_surface, text_rect) # отрисовываем текст
+
+# функция для отрисовки таблицы рекордов
+def drawing_of_records(screen):
+    text_print(screen, 500, 320, 'Table of records:', 
+               path.join(fonts_folder, '20219.ttf'), WHITE, 30, False) # отрисовываем имя таблицы
+    # отрисовываем топ-5 рекордов
+    text_print(screen, 500, 360, f'{score_table(SELECTED_MODE)[0][0]}: {score_table(SELECTED_MODE)[0][1]}', path.join(fonts_folder, '20219.ttf'),
+               WHITE, 25, False)
+    text_print(screen, 500, 400, f'{score_table(SELECTED_MODE)[1][0]}: {score_table(SELECTED_MODE)[1][1]}',
+               path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
+    text_print(screen, 500, 440, f'{score_table(SELECTED_MODE)[2][0]}: {score_table(SELECTED_MODE)[2][1]}',
+               path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
+    text_print(screen, 500, 480, f'{score_table(SELECTED_MODE)[3][0]}: {score_table(SELECTED_MODE)[3][1]}',
+               path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
+    text_print(screen, 500, 520, f'{score_table(SELECTED_MODE)[4][0]}: {score_table(SELECTED_MODE)[4][1]}',
+               path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
 
 # функция проверки пересечения мышки с кнопкой
 def button_intersection(button):
     return abs(button.center[0] - mouse.get_pos()[0]) <= button.width / 2 and \
                abs(button.center[1] - mouse.get_pos()[1]) <= button.height / 2
-
 
 # функция создания кнопок
 def draw_button(screen, button, text):
@@ -280,11 +275,12 @@ def game():
     
     screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
     pygame.display.set_caption("Pytanks 2D") # Пишем в шапку
+    pygame.mouse.set_visible(False) # скрываем курсор мыши
     running = True # работает ли игра
     game_over = False # значение экрана проигрыша
     paused = False # значение паузы
 
-    Map = TiledMap(path.join(map_folder, 'level2.tmx')) # загружем карту
+    Map = TiledMap(path.join(map_folder, 'level_1.tmx')) # загружем карту
     map_img = Map.make_map() # создаём карту
     map_rect = map_img.get_rect() # получаем размеры прямоугольника карты
     TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT = Map.get_sizes() # меняем значение размера уровня
@@ -333,15 +329,14 @@ def game():
     
     while running: # Основной цикл программы
         dt = clock.tick(FPS) / 1000.0 # значение FPS
-
         for event in pygame.event.get(): # Обрабатываем события
             if event.type == pygame.QUIT: # если выйти
                 running = False # то выходим
-
+                pygame.mouse.set_visible(False)
+                
             elif event.type == KEYDOWN: # если нажимаем клавиши
                 if event.key == K_ESCAPE: # если нажали Escape
                     paused = not paused # значение паузы меняется на противоположное
-                    pygame.mouse.set_visible(False)
 
                 if not paused and not game_over: # если не поузы и не проигрыш
                     key_state = pygame.key.get_pressed() # получаем значения нажатых клавиш

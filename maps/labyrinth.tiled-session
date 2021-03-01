@@ -1,101 +1,28 @@
 {
-    "Map/SizeTest": {
-        "height": 4300,
-        "width": 2
-    },
-    "activeFile": "level2.tmx",
+    "activeFile": "level_1.tmx",
     "expandedProjectPaths": [
     ],
     "fileStates": {
-        "": {
-            "scaleInDock": 0.75
-        },
-        "/home/legend/ass/level2.tmx": {
-            "scale": 0.401375,
-            "selectedLayer": 0,
+        "level_1.tmx": {
+            "scale": 8,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 561.8187480535659,
-                "y": 401.12114606041735
+                "x": 354.1875,
+                "y": 135.4375
             }
         },
-        "/home/legend/ass/level2.tmx#d5c4ijw-b5d34078-ed18-4380-aeb7-bbdbda1fb6d7": {
+        "level_1.tmx#some_tiles": {
             "scaleInDock": 1
         },
-        "/home/legend/ass/level2.tmx#spritesheet_tiles": {
-            "scaleInDock": 1
-        },
-        "/home/legend/level2.tmx": {
-            "scale": 0.401375,
-            "selectedLayer": 0,
-            "viewCenter": {
-                "x": 561.8187480535659,
-                "y": 520.7100591715977
-            }
-        },
-        "/home/legend/level2.tmx#d5c4ijw-b5d34078-ed18-4380-aeb7-bbdbda1fb6d7": {
-            "scaleInDock": 1
-        },
-        "/home/legend/level2.tmx#spritesheet_tiles": {
-            "scaleInDock": 1
-        },
-        "level1.tmx": {
-            "scale": 0.20573437499999997,
-            "selectedLayer": 4,
-            "viewCenter": {
-                "x": 1599.149388623073,
-                "y": 959.9756968178024
-            }
-        },
-        "level1.tmx#spritesheet_tiles": {
-            "scaleInDock": 1
-        },
-        "level2.tmx": {
-            "scale": 0.5,
-            "selectedLayer": 2,
-            "viewCenter": {
-                "x": 561,
-                "y": 399
-            }
-        },
-        "level2.tmx#d5c4ijw-b5d34078-ed18-4380-aeb7-bbdbda1fb6d7": {
-            "scaleInDock": 1
-        },
-        "level2.tmx#spritesheet_tiles": {
-            "scaleInDock": 0.75
-        },
-        "tiled1.tmx": {
-            "scale": 0.20573437499999997,
-            "selectedLayer": 0,
-            "viewCenter": {
-                "x": 1601.5797068428649,
-                "y": 964.8363332573861
-            }
-        },
-        "tiled1.tmx#Kenney Topdown Pack": {
+        "level_1.tmx#spritesheet_tiles": {
             "scaleInDock": 1
         }
     },
-    "map.height": 25,
-    "map.lastUsedFormat": "tmx",
-    "map.width": 35,
     "openFiles": [
-        "level1.tmx",
-        "level2.tmx"
+        "level_1.tmx"
     ],
     "project": "",
     "recentFiles": [
-        "level1.tmx",
-        "level2.tmx",
-        "/home/legend/ass/level2.tmx",
-        "/home/legend/level2.tmx",
-        "tiled1.tmx"
-    ],
-    "tileset.embedInMap": true,
-    "tileset.margin": 0,
-    "tileset.spacing": 0,
-    "tileset.tileSize": {
-        "height": 32,
-        "width": 32
-    },
-    "tileset.transparentColor": "#000000"
+        "level_1.tmx"
+    ]
 }

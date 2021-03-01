@@ -24,6 +24,7 @@ fonts_folder = path.join(game_folder, 'assets/fonts')
 WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
+ICON = 'icon.bmp' # изображение иконки игры
 TOTAL_LEVEL_WIDTH = 0 # полная ширина уровня
 TOTAL_LEVEL_HEIGHT = 0 # полная высота уровня
 FPS = 60 # количество кадров в секунду
