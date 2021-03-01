@@ -5,6 +5,7 @@
 import pygame
 import os
 import random
+from random import choice
 import pytmx
 from os import path
 from pygame import *
@@ -21,7 +22,6 @@ PARTICLE_EVENT = pygame.USEREVENT + 1 # событие для частиц
 ENEMIES_EVENT = pygame.USEREVENT      # событие для возрождения врагов
 AMMUNITION_EVENT = pygame.USEREVENT   # событие для перезарядки
 pygame.init() # Инициация PyGame
-
 
 # класс объектов (создаём спрайты и присваиваем им параметры)
 class Obstacle(pygame.sprite.Sprite):
@@ -69,7 +69,35 @@ class Fog:
         self.fog.blit(self.light_mask, self.light_rect) # накадываем маску на слой
         self.screen.blit(self.fog, (0, 0), special_flags=pygame.BLEND_MULT) # отображем слой на экране
 
+# функция меню обучения
+def tutorial_show(screen):
+    loaded_images = []
+    for img in TUTORIAL_IMAGES:
+        loaded_images.append(pygame.image.load(path.join(images_folder, img)))
+    loaded_images = chain(loaded_images)
+    current_image = next(loaded_images)
+    show = True # переменная показа окна
+    pygame.display.set_caption('Tutorial Pytanks 2D') # Пишем в шапку
+    clock = pygame.time.Clock() # добавляем часы
+    while show: # Основной цикл программы
+        clock.tick(FPS) # ограничиваем частоту отрисовки кадров
+        for event in pygame.event.get(): # Обрабатываем события
+            if event.type == pygame.QUIT: # если выйти
+                show = False # цикл останавливается
+            elif event.type == KEYDOWN: # если нажали любую клавишу
+                try:
+                    image = next(loaded_images) # изображение меняется на следующее
+                except:
+                    show = False # цикл останавливается
+            elif event.type == MOUSEBUTTONDOWN: # если нажали на кнопку мыши
+                try:
+                    current_image = next(loaded_images) # изображение меняется на следующее
+                except:
+                    show = False # цикл останавливается
+        screen.blit(image, (0, 0)) # рисуем изображение
+        pygame.display.update() # обновление и вывод всех изменений на экран
 
+# класс камеры
 class Camera(object):
     def __init__(self, camera_func, width, height):
         self.camera_func = camera_func
@@ -130,19 +158,18 @@ def text_print(screen, x, y, message, font_type, fonts_color, font_size, center_
 
 # функция для отрисовки таблицы рекордов
 def drawing_of_records(screen):
-    pygame.draw.rect(screen, BLACK, (480, 300, 270, 220), 10)
     text_print(screen, 500, 320, 'Table of records:', 
                path.join(fonts_folder, '20219.ttf'), WHITE, 30, False) # отрисовываем имя таблицы
     # отрисовываем топ-5 рекордов
-    text_print(screen, 500, 360, f'{score_table()[0][0]}: {score_table()[0][1]}', path.join(fonts_folder, '20219.ttf'),
+    text_print(screen, 500, 360, f'{score_table(SELECTED_MODE)[0][0]}: {score_table(SELECTED_MODE)[0][1]}', path.join(fonts_folder, '20219.ttf'),
                WHITE, 25, False)
-    text_print(screen, 500, 400, f'{score_table()[1][0]}: {score_table()[1][1]}',
+    text_print(screen, 500, 400, f'{score_table(SELECTED_MODE)[1][0]}: {score_table(SELECTED_MODE)[1][1]}',
                path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
-    text_print(screen, 500, 440, f'{score_table()[2][0]}: {score_table()[2][1]}',
+    text_print(screen, 500, 440, f'{score_table(SELECTED_MODE)[2][0]}: {score_table(SELECTED_MODE)[2][1]}',
                path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
-    text_print(screen, 500, 480, f'{score_table()[3][0]}: {score_table()[3][1]}',
+    text_print(screen, 500, 480, f'{score_table(SELECTED_MODE)[3][0]}: {score_table(SELECTED_MODE)[3][1]}',
                path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
-    text_print(screen, 500, 520, f'{score_table()[4][0]}: {score_table()[4][1]}',
+    text_print(screen, 500, 520, f'{score_table(SELECTED_MODE)[4][0]}: {score_table(SELECTED_MODE)[4][1]}',
                path.join(fonts_folder, '20219.ttf'), WHITE, 25, False)
 
 
@@ -193,7 +220,7 @@ def draw_main_menu_button(screen, mouse_click=False):
                 game() # запускаем игру
 
             if button_intersection(tutorial_button): # если нажали на кнопку tutorial_button
-                pass
+                tutorial_show(screen)
 
             if button_intersection(mode_button): # если нажали на кнопку mode_button
                 # меняем значения выбранного мода и настроек игры
@@ -395,7 +422,7 @@ def game():
             enemies.update(ENEMY_SPEED, walls, bullets, all_sprites, boom_flash, player, enemies) # обновляем позиции врагов
 
             # пасхалка
-            if player.special_score == 500 and player.ricardo_go[0]:
+            if player.special_score == 300 and player.ricardo_go[0]:
                 woo = Woo(all_sprites, center_coords)
                 pygame.mixer.Sound(path.join(sounds_folder, RICARDO_SOUND)).play()
                 player.ricardo_go = [False, True]
@@ -450,7 +477,7 @@ def game():
             pygame.mouse.set_visible(True) # делаем курсор мыши видимым
         pygame.display.update() # обновление и вывод всех изменений на экран
     pygame.mixer.music.stop() # отсанавливаем воспроизведение фоновой музыки
-    add_record(score_name(), player.score) # добавляем рекорд в таблицу
+    add_record(score_name(), player.score, SELECTED_MODE) # добавляем рекорд в таблицу
 
 
 if __name__ == "__main__":

@@ -79,6 +79,9 @@ KILL_FLASH_DURATION = 150 # длительность взрыва
 EFFECTS_LAYER = 4
 kill_flashes = []
 
+# изображения для обучения
+TUTORIAL_IMAGES = ['tutorial_1.jpg', 'tutorial_2.jpg', 'tutorial_3.jpg', 'tutorial_4.jpg', 'tutorial_5.jpg']
+
 # просто Рикардо
 RICARDO_IMAGE = path.join(images_folder, 'ricardo.png')
 RICARDO_SOUND = 'ricardo.wav'

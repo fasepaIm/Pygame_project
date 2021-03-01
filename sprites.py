@@ -123,7 +123,6 @@ class Player(sprite.Sprite):
         self.damaged = True
         self.damage_alpha = chain(DAMAGE_ALPHA * 3)
 
-
 # класс врагов
 class Enemy(sprite.Sprite):
     def __init__(self, all_sprites, player, enemies, coords):
@@ -175,7 +174,7 @@ class Enemy(sprite.Sprite):
             if sprite.collide_rect(self, p): # если есть пересечение снаряда с врагом
                 MuzzleFlash(self.all_sprites, self.boom_flash, kill_flashes, p.rect.center, True) # добавляем взрыв
                 self.player.score += POINT_PRICE # увеличиваем счёт игрока
-                if self.player.special_score == 500:
+                if self.player.special_score == 300:
                     self.player.special_score = 0
                     self.player.ricardo_go[0] = True
                 self.player.special_score += POINT_PRICE
