@@ -4,11 +4,11 @@
     ],
     "fileStates": {
         "level_1.tmx": {
-            "scale": 8,
+            "scale": 0.5,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 354.1875,
-                "y": 135.4375
+                "x": 539,
+                "y": 495
             }
         },
         "level_1.tmx#some_tiles": {

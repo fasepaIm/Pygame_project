@@ -86,4 +86,3 @@ TUTORIAL_IMAGES = ['tutorial_1.jpg', 'tutorial_2.jpg', 'tutorial_3.jpg', 'tutori
 # просто Рикардо
 RICARDO_IMAGE = path.join(images_folder, 'ricardo.png')
 RICARDO_SOUND = 'ricardo.wav'
-

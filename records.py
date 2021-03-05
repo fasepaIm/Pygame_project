@@ -16,13 +16,13 @@ def add_record(name, score, mode):
                                  WHERE {score} > {index[0]} AND id = {index[1]}""")
         con.commit()
     elif 'NIGHT' in mode:
-        index = cur.execute("""SELECT MIN(score) id FROM records_night""").fetchall()[0]
+        index = cur.execute("""SELECT MIN(score), id FROM records_night""").fetchall()[0]
         result = cur.execute(f"""UPDATE records_night
                                  SET name = '{name}', score = '{score}'
                                  WHERE {score} > {index[0]} AND id = {index[1]}""")
         con.commit()
     elif 'HARD' in mode:
-        index = cur.execute("""SELECT MIN(score) id FROM records_hard""").fetchall()[0]
+        index = cur.execute("""SELECT MIN(score), id FROM records_hard""").fetchall()[0]
         result = cur.execute(f"""UPDATE records_hard
                                  SET name = '{name}', score = '{score}'
                                  WHERE {score} > {index[0]} AND id = {index[1]}""")
