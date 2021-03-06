@@ -7,7 +7,8 @@ from settings import *
 
 
 pygame.init()
-FONT = pygame.font.Font(path.join(fonts_folder, '20219.ttf'), 40) # загружаем шрифт
+FONT = pygame.font.Font(path.join(fonts_folder, '20219.ttf'), 40)  # загружаем шрифт
+
 
 # класс поля ввода
 class InputBox:
@@ -17,7 +18,6 @@ class InputBox:
         self.text = text
         self.txt_surface = FONT.render(text, True, self.color)
         self.active = False
-
 
     def handle_event(self, event):
         global NAME
@@ -35,7 +35,7 @@ class InputBox:
                 if event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
                 else:
-                    if len(self.text) < 14: # если количество введённых символов не превышает 14
+                    if len(self.text) < 14:  # если количество введённых символов не превышает 14
                         self.text += event.unicode
                 NAME = self.text
                 # добавляем текст
@@ -46,7 +46,7 @@ class InputBox:
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y))
         # отрисовываем рамку
         pygame.draw.rect(screen, self.color, self.rect, 7)
-        
+
 
 # функция для вывода имени игрока
 def score_name():

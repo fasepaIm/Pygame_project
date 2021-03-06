@@ -29,6 +29,7 @@ def add_record(name, score, mode):
         con.commit()
     con.close()
 
+
 def score_table(mode):
     con = sqlite3.connect("assets/records_db/score.db")
     cur = con.cursor()

@@ -5,6 +5,7 @@
 import random
 import pygame
 
+
 # Класс для генерации частиц
 class ParticlePrinciple:
     def __init__(self, screen):
