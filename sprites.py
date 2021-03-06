@@ -133,6 +133,7 @@ class Enemy(sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = coords
         self.rect.center = coords
+        self.lamp = False
 
     def update(self, ENEMY_SPEED, walls, bullets, all_sprites, boom_flash, player, enemies):
         self.all_sprites = all_sprites
@@ -141,6 +142,10 @@ class Enemy(sprite.Sprite):
         self.yvel = 0
         distance = int(sqrt((player.rect.x - self.rect.x) ** 2 +
                             (player.rect.y - self.rect.y) ** 2)) # расстояние между врагом и игроком
+        if distance < 200:
+            self.lamp = True
+        else:
+            self.lamp = False
 
         if self.player.pos[0] > self.rect.x: # если игрок правее чем враг
             self.xvel += ENEMY_SPEED         # то движемся вправо

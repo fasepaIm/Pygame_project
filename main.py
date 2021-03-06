@@ -309,6 +309,7 @@ def game():
 
     if NIGHT: # если ночь
         fog = Fog(screen, camera, player) # создаём туман
+        lamp_image = pygame.image.load(LAMP_IMAGE).convert_alpha() # загружаем лампочку индикации
 
     particle1 = ParticlePrinciple(screen) # создаём объект частиц
     draw_particle = False # рисовать ли частицы
@@ -386,7 +387,7 @@ def game():
 
             if event.type == AMMUNITION_EVENT and AMMUNITION < 5: # если событие перезарядки и боезапас меньше пяти
                 AMMUNITION += 1 # боезапас + 1
-                
+               
         if key_state[K_a]: # если зажата клавиша A
             left = True # налево
             draw_particle = True # рисуем частицы
@@ -442,6 +443,9 @@ def game():
             # отрисовываем кол-во кадров в секунду(fps)
             text_print(screen, WIN_WIDTH - 10, WIN_HEIGHT - 10, str(int(clock.get_fps())), 
                        path.join(fonts_folder, '20219.ttf'), WHITE, 15, True)
+            # отрисовываем лампочку, если кто-то из врагов находится близко
+            if any([i.lamp for i in enemies]) and NIGHT:
+                screen.blit(lamp_image, (10, 50))
 
         elif not game_over: # если пауза
             player_ride_sound.stop() # останавливаем воспроизведение звука передвижения

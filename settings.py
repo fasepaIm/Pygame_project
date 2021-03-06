@@ -24,7 +24,7 @@ fonts_folder = path.join(game_folder, 'assets/fonts')
 WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
-ICON = 'icon.bmp' # изображение иконки игры
+ICON = 'icon.ico' # изображение иконки игры
 TOTAL_LEVEL_WIDTH = 0 # полная ширина уровня
 TOTAL_LEVEL_HEIGHT = 0 # полная высота уровня
 FPS = 60 # количество кадров в секунду
@@ -39,6 +39,7 @@ MUSIC_VOLUME = 0.05 # громкось музыки
 NIGHT_COLOR = (0, 0, 0) # ночная заливка
 LIGHT_RADIUS = (500, 500) # радиус света
 LIGHT_MASK = "light_350_med.png" # маска света
+LAMP_IMAGE = path.join(images_folder, 'lamp.png') # лампа индикации
 
 # параметры игрока
 MOVE_SPEED = 1 # скорость игрока
